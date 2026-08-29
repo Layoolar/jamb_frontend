@@ -67,39 +67,39 @@ Goal: prove the core premise before building anything on top of it. Nothing else
 Goal: a complete duel playable end-to-end with curl. No React Native this phase.
 
 ### Foundation
-- [ ] Express 5 + TypeScript + tsx, Postgres 18 local (installed natively — no Docker needed)
-- [ ] Drizzle schema from PLAN §6, first migration
-- [ ] Zod schemas — request **and response** (PLAN §2.2)
-- [ ] Error handler, request logging, health endpoint
+- [x] Express 5 + TypeScript + tsx, Postgres 18 in a container on **port 55433** — the native 13 and 18 installs own 5432 *and* 5433 and are password-locked, so pointing at 5433 silently reaches the wrong server
+- [x] Drizzle schema from PLAN §6, first migration
+- [x] Zod schemas — request **and response** (PLAN §2.2)
+- [x] Error handler, request logging, health endpoint
 
 ### Auth (PLAN §2.4)
-- [ ] `POST /auth/signup` — argon2id
-- [ ] `POST /auth/login`
-- [ ] `POST /auth/oauth/google` — `jose` + `createRemoteJWKSet`
-- [ ] `POST /auth/oauth/apple` — same verifier, different issuer/audience
-- [ ] `POST /auth/link`
-- [ ] `POST /auth/refresh` — rotation with reuse detection
-- [ ] `DELETE /auth/account` — App Store 5.1.1(v), not optional
-- [ ] **Account linking rule:** link on verified-email match only, never unverified
-- [ ] Rate limit all auth routes
+- [x] `POST /auth/signup` — argon2id
+- [x] `POST /auth/login`
+- [x] `POST /auth/oauth/google` — `jose` + `createRemoteJWKSet`
+- [x] `POST /auth/oauth/apple` — same verifier, different issuer/audience
+- [x] `POST /auth/link`
+- [x] `POST /auth/refresh` — rotation with reuse detection
+- [x] `DELETE /auth/account` — App Store 5.1.1(v), not optional
+- [x] **Account linking rule:** link on verified-email match only, never unverified
+- [x] Rate limit all auth routes
 - [ ] Register the three Google OAuth clients + both Android SHA-1s **now**
 
 ### Match engine
-- [ ] `POST /matches` — random 10, 7 past / 3 AI, difficulty spread
-- [ ] `POST /matches/:id/question` — stamps `served_at` server-side
-- [ ] **Serve is idempotent** — reconnect returns the current question with its *original* deadline. Kill the app mid-question and confirm you do not get a fresh 15s.
-- [ ] `POST /matches/:id/answer` — deadline + 1.5s grace, scoring, integrity flags
-- [ ] **`correctIndex` appears in exactly one response schema.** Grep to confirm.
-- [ ] `POST /matches/join` — `SELECT … FOR UPDATE SKIP LOCKED`
-- [ ] `GET /matches/:id/result`
-- [ ] Settlement in one transaction, `FOR UPDATE` on the match row — two simultaneous finishes cannot double-settle
-- [ ] Bot opponent fallback for unclaimed matches
-- [ ] Hourly `node-cron` expiry job
+- [x] `POST /matches` — random 10, 7 past / 3 AI, difficulty spread
+- [x] `POST /matches/:id/question` — stamps `served_at` server-side
+- [x] **Serve is idempotent** — reconnect returns the current question with its *original* deadline. Kill the app mid-question and confirm you do not get a fresh 15s.
+- [x] `POST /matches/:id/answer` — deadline + 1.5s grace, scoring, integrity flags
+- [x] **`correctIndex` appears in exactly one response schema.** Grep to confirm.
+- [x] `POST /matches/join` — `SELECT … FOR UPDATE SKIP LOCKED`
+- [x] `GET /matches/:id/result`
+- [x] Settlement in one transaction, `FOR UPDATE` on the match row — two simultaneous finishes cannot double-settle
+- [ ] Bot opponent fallback for unclaimed matches *(schema column exists; fill logic not written)*
+- [x] Hourly `node-cron` expiry job
 
 ### Content
-- [ ] `scripts/import.ts` — CSV → questions
-- [ ] Seed 100 real questions by hand across the 4 subjects
-- [ ] `POST /questions/:id/report` + auto-flag at 3
+- [x] `scripts/import.ts` — CSV → questions
+- [ ] Seed 100 real questions by hand across the 4 subjects *(48 seeded via `npm run seed` — original practice items, honestly recorded as source=ai. Real past papers still needed.)*
+- [x] `POST /questions/:id/report` + auto-flag at 3
 
 **Exit gate:** two curl sessions play the same match to settlement, scores and winner correct. Late answers score 0. Restarting mid-question does not grant extra time.
 
