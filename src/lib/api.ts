@@ -193,6 +193,20 @@ export const api = {
     return r;
   },
 
+  forgotPassword: (email: string) =>
+    call<{ ok: true }>('/auth/password/forgot', {
+      method: 'POST',
+      body: { email },
+      auth: false,
+    }),
+
+  resetPassword: (code: string, password: string) =>
+    call<{ ok: true }>('/auth/password/reset', {
+      method: 'POST',
+      body: { code, password },
+      auth: false,
+    }),
+
   me: () => call<Me>('/auth/me'),
 
   setUsername: (username: string) =>

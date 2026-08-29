@@ -28,12 +28,21 @@ import { OptionButton, type OptionState } from '@/components/OptionButton';
 import { TimerBar } from '@/components/TimerBar';
 import { Body, Button, ErrorNote, Loading, Screen } from '@/components/ui';
 import { ApiError, api } from '@/lib/api';
+import {
+  armCaptureProtection,
+  isSplitScreen,
+  onScreenshot,
+  releaseCaptureProtection,
+  watchAppAway,
+} from '@/lib/anticheat';
 import { useColors } from '@/lib/useColors';
 import type { AnswerResult, IntegrityFlag, ServedQuestion } from '@/lib/types';
 import { font, radius, space } from '@/theme';
 
 const REVEAL_MS = 1400;
-const TRANSITION_MS = 400;
+const CAPTURE_TAG = 'question';
+/** Matches the server's threshold in services/scoring.ts. */
+const STRIKE_THRESHOLD_MS = 2000;
 
 type Phase = 'loading' | 'question' | 'revealed' | 'transition' | 'done';
 
@@ -51,12 +60,54 @@ export default function Play() {
   const [reported, setReported] = useState(false);
 
   /**
-   * Anti-cheat signals accumulate here between answers and ship with the next
-   * submission. Populated in Phase 5; the plumbing exists now so the server
-   * contract is exercised end to end.
+   * Anti-cheat signals accumulate here and ship with the next submission, so a
+   * flag raised during question N is scored against question N.
    */
   const flags = useRef<IntegrityFlag[]>([]);
   const submitting = useRef(false);
+  const [splitScreen, setSplitScreen] = useState(isSplitScreen());
+
+  /**
+   * Capture protection is armed for the LIFETIME OF THIS SCREEN ONLY.
+   *
+   * The result screen must stay screenshottable — a score posted to a WhatsApp
+   * group is the app's cheapest acquisition channel (PLAN §4), so blocking
+   * capture everywhere would cost more than it protects.
+   */
+  useEffect(() => {
+    void armCaptureProtection(CAPTURE_TAG);
+    return () => {
+      void releaseCaptureProtection(CAPTURE_TAG);
+    };
+  }, []);
+
+  /**
+   * Leaving the app during a live question is the "swipe to ChatGPT" path.
+   * The flag can only ever hurt the reporter, so a hostile client gains nothing
+   * by suppressing or faking it — the server decides what it costs.
+   */
+  useEffect(
+    () =>
+      watchAppAway((e) => {
+        if (e.isStrike) {
+          flags.current.push({ kind: 'app_away', msAway: e.msAway });
+        }
+      }, STRIKE_THRESHOLD_MS),
+    [],
+  );
+
+  /**
+   * On Android a screenshot should be impossible here (FLAG_SECURE). If the
+   * listener fires anyway, blocking has failed and we want to know. On iOS it is
+   * the fallback signal.
+   */
+  useEffect(() => onScreenshot(() => flags.current.push({ kind: 'screenshot' })), []);
+
+  // Split-screen would let a second app sit beside the question.
+  useEffect(() => {
+    const id = setInterval(() => setSplitScreen(isSplitScreen()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const finish = useCallback(() => {
     setPhase('done');
@@ -174,6 +225,16 @@ export default function Play() {
             }}
           />
           <Button label="Leave match" variant="ghost" onPress={() => router.replace('/home')} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (splitScreen) {
+    return (
+      <Screen scroll={false}>
+        <View style={{ flex: 1, justifyContent: 'center', gap: space.lg }}>
+          <ErrorNote message="Split-screen is not allowed during a question. Return the app to full screen to carry on — your timer is still running." />
         </View>
       </Screen>
     );

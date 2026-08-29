@@ -113,6 +113,18 @@ export default function SignIn() {
               : 'New here? Create an account'}
           </Text>
         </Pressable>
+
+        {mode === 'login' ? (
+          <Pressable
+            onPress={() => router.push('/forgot-password')}
+            style={{ minHeight: 44, justifyContent: 'center', alignItems: 'center' }}
+            accessibilityRole="button"
+          >
+            <Text style={{ ...font.body, fontSize: 14, color: c.textMuted }}>
+              Forgot your password?
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <View style={{ flex: 1 }} />

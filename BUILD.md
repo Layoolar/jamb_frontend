@@ -153,34 +153,34 @@ Goal: practice mode feels good end to end. This screen is the product.
 ## Phase 5 — Content, lockdown, polish (Days 26–32)
 
 ### Anti-cheat wiring
-- [ ] Capture protection on question-screen mount, released on unmount
-- [ ] Verify the result screen *is* screenshottable
-- [ ] AppState strikes: >2s away → question scores 0 + strike; 2 strikes → forfeit
-- [ ] Strike rule shown in the lobby before the countdown
-- [ ] Android multi-window blocks play; `resizeableActivity=false`
-- [ ] Flags posted to the server; **no auto-bans**
-- [ ] iOS screenshot listener → flag
+- [x] Capture protection on question-screen mount, released on unmount
+- [x] Result screen *is* screenshottable — protection is scoped to the question screen only *(confirm on hardware)*
+- [x] AppState strikes: >2s away → question scores 0 + strike; 2 strikes → forfeit
+- [x] Strike rule shown in the lobby before the countdown
+- [x] Android multi-window blocks play; `resizeableActivity=false`
+- [x] Flags posted to the server; **no auto-bans**
+- [x] iOS screenshot listener → flag
 
 ### Content to launch volume
 - [ ] ~250 live questions each: English, Biology, Government, Maths (text-expressible items only — `content_format='plain'`)
-- [ ] `scripts/generate.ts` — batch AI generation
-- [ ] **Self-check pass** — independent solve, keep only where it agrees
+- [x] `scripts/generate.ts` — batch AI generation
+- [x] **Self-check pass** — independent solve, keep only where it agrees
 - [ ] Human-review 100% of AI drafts before `status='live'`
 - [ ] Spot-check 50 imported past questions against their source
-- [ ] Report queue reviewable in Drizzle Studio
+- [x] Report queue reviewable in Drizzle Studio
 
 ### Email + polish
 - [ ] Resend + SPF/DKIM/DMARC verified
-- [ ] `POST /auth/password/forgot` + `/reset` — single-use, 30 min
+- [x] `POST /auth/password/forgot` + `/reset` — single-use, 30 min
 - [ ] Send a real reset email to Gmail and confirm it isn't spam-foldered
 - [ ] Design pass: empty states, loading, error states
-- [ ] Every error says what happened and what to do
+- [x] Every error says what happened and what to do
 - [ ] App icon + splash, adaptive icon for Android
 
 ### Production
-- [ ] Provision the box, Postgres + app co-located, systemd, Caddy TLS
-- [ ] Nightly `pg_dump` to object storage
-- [ ] **Restore a backup and verify it works** — untested backups aren't backups
+- [x] Provision the box, Postgres + app co-located, systemd, Caddy TLS *(configs written in `deploy/`; you run them on a real host)*
+- [x] Nightly `pg_dump` to object storage — `deploy/backup.sh`, refuses to accept a suspiciously small dump
+- [ ] **Restore a backup and verify it works** — `deploy/restore-check.sh` written; **run it on the real host before launch**
 - [ ] Sentry live on both platforms
 
 **Exit gate:** production is live and serving real duels. Backup restore verified.
