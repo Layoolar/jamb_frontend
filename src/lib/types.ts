@@ -130,7 +130,10 @@ export type MatchResult = {
 export type Subject = {
   slug: string;
   name: string;
-  liveQuestions: number;
+  /** Counts are per-pool — the pools are disjoint, so a subject can be
+   *  playable in one mode and not the other. */
+  duelQuestions: number;
+  practiceQuestions: number;
 };
 
 export type IntegrityFlag = {

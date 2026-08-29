@@ -55,8 +55,12 @@ export default function Subjects() {
     );
   }
 
+  // Pools are disjoint, so a subject can have enough to duel on but not enough
+  // to practise, or the reverse. Count the pool for the mode being played.
   const rows = subjects.data?.subjects ?? [];
-  const playable = rows.filter((s) => s.liveQuestions >= QUESTIONS_NEEDED);
+  const countFor = (s: (typeof rows)[number]) =>
+    mode === 'duel' ? s.duelQuestions : s.practiceQuestions;
+  const playable = rows.filter((s) => countFor(s) >= QUESTIONS_NEEDED);
 
   return (
     <Screen>
@@ -81,7 +85,7 @@ export default function Subjects() {
           <SubjectRow
             key={s.slug}
             name={s.name}
-            detail={`${s.liveQuestions} questions`}
+            detail={`${countFor(s)} questions`}
             active={selected === s.slug}
             onPress={() => setSelected(s.slug)}
           />
@@ -90,7 +94,8 @@ export default function Subjects() {
 
       {rows.length > playable.length ? (
         <Text style={{ ...font.label, color: c.textMuted }}>
-          SUBJECTS WITH FEWER THAN {QUESTIONS_NEEDED} QUESTIONS ARE HIDDEN
+          SUBJECTS WITH FEWER THAN {QUESTIONS_NEEDED} {mode === 'duel' ? 'DUEL' : 'PRACTICE'}{' '}
+          QUESTIONS ARE HIDDEN
         </Text>
       ) : null}
 
