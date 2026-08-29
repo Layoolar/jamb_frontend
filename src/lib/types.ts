@@ -53,6 +53,8 @@ export type MatchSummary = {
   inviteCode: string | null;
   totalQuestions: number;
   answeredCount: number;
+  /** Their progress, never their score. */
+  opponentAnsweredCount: number | null;
   expiresAt: string;
   /** Null until a duel settles — the match list obeys the same seal as the result. */
   outcome: 'won' | 'lost' | 'draw' | null;

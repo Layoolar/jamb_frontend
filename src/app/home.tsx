@@ -58,18 +58,34 @@ export default function Home() {
 
   const stats = me.data?.stats;
   const all = matches.data?.matches ?? [];
-  const pending = all.filter(
-    (m) => m.status !== 'settled' && m.answeredCount < m.totalQuestions,
-  );
-  const waiting = all.filter(
-    (m) => m.status === 'awaiting_opponent' && m.answeredCount >= m.totalQuestions,
-  );
-  const recent = all.filter((m) => m.status === 'settled');
+
+  /**
+   * ONE pass with an exhaustive else, not three independent filters.
+   *
+   * Three filters is how a state goes missing: a duel where you had finished
+   * but your opponent had not matched none of them, so the single most
+   * interesting match you own — "they are playing your questions right now" —
+   * rendered nowhere at all. Anything unrecognised now lands in `other`
+   * instead of silently vanishing.
+   */
+  const yourTurn: MatchSummary[] = [];
+  const waiting: MatchSummary[] = [];
+  const finished: MatchSummary[] = [];
+  const other: MatchSummary[] = [];
+
+  for (const m of all) {
+    if (m.status === 'settled') finished.push(m);
+    else if (m.answeredCount < m.totalQuestions) yourTurn.push(m);
+    else if (m.status === 'awaiting_opponent' || m.status === 'in_progress')
+      waiting.push(m);
+    else other.push(m);
+  }
 
   // A brand-new account has nothing to show. Four zeros under "WELCOME BACK" is
   // the worst possible first impression, so explain the game instead and let
   // stats arrive once they mean something.
   const isNew = (stats?.duelsPlayed ?? 0) === 0 && all.length === 0;
+  const pending = yourTurn;
 
   return (
     <Screen
@@ -162,8 +178,22 @@ export default function Home() {
 
       {waiting.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <Text style={{ ...font.heading, color: c.text }}>Waiting for an opponent</Text>
+          <Text style={{ ...font.heading, color: c.text }}>Waiting on them</Text>
           {waiting.map((m) => (
+            <WaitingRow
+              key={m.matchId}
+              match={m}
+              c={c}
+              onPress={() => router.push(`/result/${m.matchId}`)}
+            />
+          ))}
+        </View>
+      ) : null}
+
+      {finished.length > 0 ? (
+        <View style={{ gap: space.sm }}>
+          <Text style={{ ...font.heading, color: c.text }}>Finished</Text>
+          {finished.slice(0, 6).map((m) => (
             <MatchRow
               key={m.matchId}
               match={m}
@@ -174,10 +204,11 @@ export default function Home() {
         </View>
       ) : null}
 
-      {recent.length > 0 ? (
+      {/* Catch-all so an unexpected status is visible rather than lost. */}
+      {other.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <Text style={{ ...font.heading, color: c.text }}>Finished</Text>
-          {recent.slice(0, 6).map((m) => (
+          <Text style={{ ...font.heading, color: c.text }}>Other</Text>
+          {other.map((m) => (
             <MatchRow
               key={m.matchId}
               match={m}
@@ -222,7 +253,64 @@ function HowRow({
   );
 }
 
-/** A finished or waiting match. Shows the outcome, not a generic "VIEW". */
+/**
+ * A duel you have finished but that has no verdict yet.
+ *
+ * The two sub-states need different words and prompt different actions: nobody
+ * has taken the challenge (share it, or take the bot), versus somebody is
+ * answering right now (nothing to do but wait). Collapsing them into one
+ * "waiting" row loses the only thing the player can act on.
+ */
+function WaitingRow({
+  match,
+  c,
+  onPress,
+}: {
+  match: MatchSummary;
+  c: ReturnType<typeof useColors>;
+  onPress: () => void;
+}) {
+  const unclaimed = match.status === 'awaiting_opponent';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.md,
+        paddingVertical: space.md,
+        paddingHorizontal: space.lg,
+        borderRadius: radius.md,
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.border,
+      }}
+    >
+      <View
+        style={{ width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: c.sealed }}
+      />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ ...font.body, color: c.text }}>
+          {match.subject?.name ?? 'Mixed'}
+        </Text>
+        <Text style={{ ...font.label, color: c.textMuted }}>
+          {unclaimed
+            ? match.inviteCode
+              ? `NOBODY HAS JOINED · CODE ${match.inviteCode}`
+              : 'NOBODY HAS JOINED YET'
+            : `${match.opponentName ?? 'THEY'} IS PLAYING · ${match.opponentAnsweredCount ?? 0}/${match.totalQuestions}`}
+        </Text>
+      </View>
+      <Text style={{ ...font.label, color: c.accent }}>
+        {unclaimed ? 'SHARE' : 'VIEW'}
+      </Text>
+    </Pressable>
+  );
+}
+
+/** A finished match. Shows the outcome, not a generic "VIEW". */
 function MatchRow({
   match,
   c,
