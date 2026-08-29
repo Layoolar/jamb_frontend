@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Platform, Pressable, Text, TextInput, View } from 'react-native';
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
 import { ApiError, api } from '@/lib/api';
 import { useColors } from '@/lib/useColors';
 import { Body, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
@@ -20,7 +20,7 @@ export default function SignIn() {
   const [error, setError] = useState<string | null>(null);
 
   // A duel code arriving via deep link must survive sign-in, not be dropped.
-  const nextHref = code ? `/home?code=${code}` : '/home';
+  const nextHref: Href = code ? (`/home?code=${code}` as Href) : '/home';
 
   if (status === 'signedIn') return <Redirect href={nextHref} />;
 

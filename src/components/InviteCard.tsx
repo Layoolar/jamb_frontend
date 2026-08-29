@@ -10,18 +10,20 @@ import { font, radius, space } from '@/theme';
  * Shown on the result screen while a duel is still open.
  *
  * This is the acquisition channel: a code pasted into a WhatsApp study group is
- * cheaper than any advertising, which is why the share text leads with the
- * score the challenger has to beat rather than with the app's name.
+ * cheaper than any advertising.
+ *
+ * The share text cannot name a score to beat, because the challenger does not
+ * know their own score yet — neither player sees anything until the duel is
+ * decided. That turns out to be the better hook anyway: "I've taken my shot"
+ * invites a reply, where "I scored 1840" invites a shrug.
  */
 export function InviteCard({
   code,
-  scoreToBeat,
   subject,
   onPlayBot,
   botBusy,
 }: {
   code: string;
-  scoreToBeat: number;
   subject: string;
   onPlayBot: () => void;
   botBusy: boolean;
@@ -30,7 +32,8 @@ export function InviteCard({
   const [copied, setCopied] = useState(false);
 
   const message =
-    `I scored ${scoreToBeat} on ${subject} in SabiPass. Beat that.\n\n` +
+    `I've taken my shot at ${subject} on SabiPass. Same ten questions, ` +
+    `15 seconds each. Neither of us sees a score until we've both played.\n\n` +
     `Code: ${code}\n` +
     `sabipass://duel/${code}`;
 
@@ -54,8 +57,8 @@ export function InviteCard({
     >
       <Text style={{ ...font.label, color: c.accent }}>SHARE THIS DUEL</Text>
       <Body muted>
-        Send the code to a friend. They answer the same ten questions and we
-        compare scores.
+        Send the code to a friend. They answer the same ten questions, then you
+        both find out together.
       </Body>
 
       <View

@@ -169,13 +169,19 @@ export default function Play() {
         );
         flags.current = [];
         setAnswer(r);
-        setScore(r.runningScore);
+        if (r.runningScore !== null) setScore(r.runningScore);
 
-        Haptics.notificationAsync(
-          r.isCorrect
-            ? Haptics.NotificationFeedbackType.Success
-            : Haptics.NotificationFeedbackType.Warning,
-        ).catch(() => {});
+        // In a duel the haptic must NOT betray the answer — a success buzz is
+        // just as much of a tell as showing the correct option.
+        if (r.revealed) {
+          Haptics.notificationAsync(
+            r.isCorrect
+              ? Haptics.NotificationFeedbackType.Success
+              : Haptics.NotificationFeedbackType.Warning,
+          ).catch(() => {});
+        } else {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid).catch(() => {});
+        }
 
         const done = r.isFinalQuestion || r.forfeited;
 
@@ -248,11 +254,14 @@ export default function Play() {
     );
   }
 
-  const revealed = phase === 'revealed' && answer !== null;
+  // The post-answer card shows for every mode; what it CONTAINS depends on
+  // answer.revealed (practice explains, a duel only acknowledges).
+  const showResult = phase === 'revealed' && answer !== null;
 
   const stateFor = (i: number): OptionState => {
     if (phase === 'question') return 'idle';
-    if (!answer) return i === chosen ? 'pending' : 'dimmed';
+    // Duel: show only which option was locked in, never whether it was right.
+    if (!answer || !answer.revealed) return i === chosen ? 'pending' : 'dimmed';
     if (i === answer.correctIndex) return 'correct';
     if (i === chosen) return 'wrong';
     return 'dimmed';
@@ -267,7 +276,8 @@ export default function Play() {
             {question.year ? ` · ${question.year}` : ''}
           </Text>
           <Text style={{ ...font.label, color: c.textMuted }}>
-            {question.qIndex + 1} / {question.totalQuestions} · {score} PTS
+            {question.qIndex + 1} / {question.totalQuestions}
+            {answer?.revealed || score > 0 ? ` · ${score} PTS` : ''}
           </Text>
         </View>
 
@@ -301,42 +311,72 @@ export default function Play() {
       </View>
 
       <View style={{ flex: 1, justifyContent: 'flex-end', gap: space.sm }}>
-        {revealed && answer ? (
-          <View
-            style={{
-              backgroundColor: c.surface,
-              borderRadius: radius.md,
-              borderLeftWidth: 3,
-              borderLeftColor: answer.isCorrect ? c.correct : c.wrong,
-              padding: space.lg,
-              gap: space.xs,
-            }}
-          >
-            <Text
+        {showResult && answer ? (
+          answer.revealed ? (
+            <View
               style={{
-                ...font.label,
-                color: answer.isCorrect ? c.correct : c.wrong,
+                backgroundColor: c.surface,
+                borderRadius: radius.md,
+                borderLeftWidth: 3,
+                borderLeftColor: answer.isCorrect ? c.correct : c.wrong,
+                padding: space.lg,
+                gap: space.xs,
               }}
             >
-              {answer.wasLate
-                ? 'TIME UP · 0 PTS'
-                : answer.isCorrect
-                  ? `CORRECT · +${answer.points} PTS`
-                  : 'WRONG · 0 PTS'}
-            </Text>
-            {answer.explanation ? (
-              <Body muted>{answer.explanation}</Body>
-            ) : null}
-            <Pressable
-              onPress={report}
-              accessibilityRole="button"
-              style={{ minHeight: 36, justifyContent: 'center' }}
-            >
-              <Text style={{ ...font.label, color: reported ? c.textMuted : c.accent }}>
-                {reported ? 'REPORTED — THANK YOU' : 'REPORT THIS QUESTION'}
+              <Text
+                style={{
+                  ...font.label,
+                  color: answer.isCorrect ? c.correct : c.wrong,
+                }}
+              >
+                {answer.wasLate
+                  ? 'TIME UP · 0 PTS'
+                  : answer.isCorrect
+                    ? `CORRECT · +${answer.points} PTS`
+                    : 'WRONG · 0 PTS'}
               </Text>
-            </Pressable>
-          </View>
+              {answer.explanation ? <Body muted>{answer.explanation}</Body> : null}
+              <Pressable
+                onPress={report}
+                accessibilityRole="button"
+                style={{ minHeight: 36, justifyContent: 'center' }}
+              >
+                <Text style={{ ...font.label, color: reported ? c.textMuted : c.accent }}>
+                  {reported ? 'REPORTED — THANK YOU' : 'REPORT THIS QUESTION'}
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            /* Duel: acknowledge the answer without leaking anything about it. */
+            <View
+              style={{
+                backgroundColor: c.surface,
+                borderRadius: radius.md,
+                borderLeftWidth: 3,
+                borderLeftColor: c.border,
+                padding: space.lg,
+                gap: space.xs,
+              }}
+            >
+              <Text style={{ ...font.label, color: c.textMuted }}>
+                {answer.wasLate ? 'TIME UP' : 'ANSWER LOCKED IN'}
+              </Text>
+              <Body muted>
+                {answer.isFinalQuestion
+                  ? 'That was the last one. You will see how you did when your opponent finishes.'
+                  : 'Results are revealed when the duel is decided.'}
+              </Body>
+              <Pressable
+                onPress={report}
+                accessibilityRole="button"
+                style={{ minHeight: 36, justifyContent: 'center' }}
+              >
+                <Text style={{ ...font.label, color: reported ? c.textMuted : c.accent }}>
+                  {reported ? 'REPORTED — THANK YOU' : 'REPORT THIS QUESTION'}
+                </Text>
+              </Pressable>
+            </View>
+          )
         ) : null}
       </View>
     </Screen>

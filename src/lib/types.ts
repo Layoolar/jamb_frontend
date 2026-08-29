@@ -70,11 +70,13 @@ export type ServedQuestion = {
 };
 
 export type AnswerResult = {
-  isCorrect: boolean;
-  correctIndex: number;
+  /** False during a duel: you learn nothing until the match settles. */
+  revealed: boolean;
+  isCorrect: boolean | null;
+  correctIndex: number | null;
   explanation: string | null;
-  points: number;
-  runningScore: number;
+  points: number | null;
+  runningScore: number | null;
   msTaken: number;
   wasLate: boolean;
   qIndex: number;
@@ -85,8 +87,9 @@ export type AnswerResult = {
 
 export type PlayerLine = {
   user: PublicUser;
-  score: number;
-  totalMs: number;
+  /** Null until MatchResult.revealed. */
+  score: number | null;
+  totalMs: number | null;
   answeredCount: number;
   forfeited: boolean;
   finished: boolean;
@@ -109,6 +112,8 @@ export type MatchResult = {
   isDraw: boolean;
   isBotOpponent: boolean;
   winnerId: string | null;
+  /** True once scores and keys may be shown; `questions` is empty until then. */
+  revealed: boolean;
   you: PlayerLine;
   opponent: PlayerLine | null;
   questions: {

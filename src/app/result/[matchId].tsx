@@ -81,8 +81,8 @@ export default function Result() {
 
   const headline = solo
     ? 'Practice complete'
-    : !r.opponent?.finished
-      ? 'Waiting for your opponent'
+    : !r.revealed
+      ? 'Answers in. Waiting.'
       : r.isDraw
         ? 'Dead heat'
         : won
@@ -96,10 +96,10 @@ export default function Result() {
       <View style={{ gap: space.xs }}>
         <Eyebrow>{(r.subject?.name ?? 'MIXED').toUpperCase()}</Eyebrow>
         <Title>{headline}</Title>
-        {!solo && !r.opponent?.finished ? (
+        {!solo && !r.revealed ? (
           <Body muted>
-            They have {r.opponent?.answeredCount ?? 0} of {r.questions.length} answered.
-            We will let you know when they finish.
+            Nobody sees a score until the duel is decided — that way neither of
+            you can pick your moment. We&apos;ll notify you the second it lands.
           </Body>
         ) : null}
       </View>
@@ -129,7 +129,9 @@ export default function Result() {
           ) : null}
         </View>
         <Text style={{ ...font.label, color: c.textMuted, textAlign: 'center' }}>
-          {correctCount} OF {r.questions.length} CORRECT
+          {r.revealed
+            ? `${correctCount} OF ${r.questions.length} CORRECT`
+            : `${r.you.answeredCount} ANSWERED · SCORE SEALED`}
         </Text>
       </Card>
 
@@ -140,7 +142,6 @@ export default function Result() {
       {r.inviteCode ? (
         <InviteCard
           code={r.inviteCode}
-          scoreToBeat={r.you.score}
           subject={r.subject?.name ?? 'mixed questions'}
           botBusy={bot.isPending}
           onPlayBot={() => bot.mutate()}
@@ -192,7 +193,9 @@ export default function Result() {
         </View>
       ) : (
         <Body muted>
-          The full review unlocks once you have answered every question.
+          {solo
+            ? 'The full review unlocks once you have answered every question.'
+            : 'The full review — both sets of answers, with explanations — unlocks when the duel is decided.'}
         </Body>
       )}
 
@@ -216,8 +219,8 @@ export default function Result() {
     highlight,
   }: {
     name: string;
-    score: number;
-    ms: number;
+    score: number | null;
+    ms: number | null;
     forfeited: boolean;
     highlight: boolean;
   }) {
@@ -227,14 +230,18 @@ export default function Result() {
         <Text
           style={{
             ...font.display,
-            color: highlight ? c.accent : c.text,
+            color: score === null ? c.textMuted : highlight ? c.accent : c.text,
             fontVariant: ['tabular-nums'],
           }}
         >
-          {score}
+          {score === null ? '—' : score}
         </Text>
         <Text style={{ ...font.label, color: c.textMuted }}>
-          {forfeited ? 'FORFEIT' : `${(ms / 1000).toFixed(1)}S`}
+          {forfeited
+            ? 'FORFEIT'
+            : ms === null
+              ? 'HIDDEN'
+              : `${(ms / 1000).toFixed(1)}S`}
         </Text>
       </View>
     );
