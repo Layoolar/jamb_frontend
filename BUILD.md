@@ -142,6 +142,10 @@ Goal: practice mode feels good end to end. This screen is the product.
 - [x] Rematch button
 - [x] Push notifications (`expo-notifications`) — opponent finished, you won/lost, duel expiring
 - [x] Push permission asked *after* the first duel, not at launch
+- [x] EAS project created (`@layoolar/sabipass`) — `extra.eas.projectId` is required by `getExpoPushTokenAsync`, and without it registration threw and was silently swallowed
+- [x] Token re-synced on every launch — Expo tokens rotate on reinstall/restore, and permission is only ever asked once
+- [ ] **Firebase project + FCM V1 key in EAS** — no Android device can receive a push until this exists (PLAN §12)
+- [ ] `google-services.json` at the repo root + `android.googleServicesFile` in app.json
 - [x] Bot opponent, **labelled "Bot"** in the UI
 - [x] Pending matches list on Home
 - [x] Share result — image or text, screenshots deliberately allowed here

@@ -200,6 +200,16 @@ const written = [
     fill: [0x96, 0x59, 0x0b],
   }),
 
+  // Android notification icon. Android masks whatever it is given down to a
+  // white silhouette and adds its own padding, so this must be white on
+  // transparent and fill far more of the frame than the launcher icon does —
+  // the 0.42-scale monochrome layer renders as a speck in the status bar.
+  write("notification-icon.png", 96, null, {
+    scale: 0.86,
+    ring: [255, 255, 255],
+    fill: [255, 255, 255],
+  }),
+
   // Web favicon.
   write('favicon.png', 96, INK, { scale: 0.66, ring: OCHRE, fill: OCHRE }),
 ];

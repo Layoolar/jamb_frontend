@@ -463,6 +463,7 @@ Roughly half a day of portal clicking in total. Only the enrollments carry calen
 | Resend account + 3 DNS records (SPF, DKIM, DMARC) | 30 min | Free to 3k/mo | DNS propagation, <1h |
 | Privacy policy + terms page at your domain | 1–2h | — | Required by both stores |
 | Sentry project | 10 min | Free tier | None |
+| **Firebase project + FCM V1 service-account key uploaded to EAS** | 25 min | Free | None — but **Android push is dead until this is done** |
 
 **Almost none of this is Apple-Sign-In-specific** — it's the cost of shipping on iOS at all, which you're paying regardless. Apple Sign-In itself adds about 10 minutes on top.
 

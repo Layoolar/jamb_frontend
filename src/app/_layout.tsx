@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { setUnauthenticatedHandler } from '@/lib/api';
+import { syncPushToken } from '@/lib/notifications';
 import { useAuth } from '@/store/auth';
 import { colors } from '@/theme';
 
@@ -71,29 +72,52 @@ export default function RootLayout() {
   }, [status]);
 
   /**
+   * A rotated push token would otherwise never be re-uploaded — permission is
+   * asked once, on the first duel result, and never revisited. See syncPushToken.
+   */
+  useEffect(() => {
+    if (status !== 'signedIn') return;
+    void syncPushToken();
+  }, [status]);
+
+  /**
    * Tapping a "you won / you lost" notification opens that match's result.
    * Handles both a cold start from a notification and a tap while running.
    */
+  const [pendingMatch, setPendingMatch] = useState<string | null>(null);
+
   useEffect(() => {
-    const open = (data: unknown) => {
+    const take = (data: unknown) => {
       const matchId = (data as { matchId?: string } | null)?.matchId;
-      if (typeof matchId === 'string' && matchId) {
-        router.push(`/result/${matchId}`);
-      }
+      if (typeof matchId === 'string' && matchId) setPendingMatch(matchId);
     };
 
     Notifications.getLastNotificationResponseAsync()
       .then((res) => {
-        if (res) open(res.notification.request.content.data);
+        if (res) take(res.notification.request.content.data);
       })
       .catch(() => {});
 
     const sub = Notifications.addNotificationResponseReceivedListener((res) => {
-      open(res.notification.request.content.data);
+      take(res.notification.request.content.data);
     });
 
     return () => sub.remove();
   }, []);
+
+  /**
+   * Navigate only once auth has actually resolved.
+   *
+   * A cold start from a notification wins the race against SecureStore every
+   * time, so pushing immediately dropped a result screen on top of the sign-in
+   * screen, where its fetch 401'd. Holding the id instead means a tap that
+   * arrives signed-out still lands correctly the moment sign-in completes.
+   */
+  useEffect(() => {
+    if (!pendingMatch || status !== 'signedIn') return;
+    setPendingMatch(null);
+    router.push(`/result/${pendingMatch}`);
+  }, [pendingMatch, status]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: c.bg }}>

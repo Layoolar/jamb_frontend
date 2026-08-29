@@ -69,11 +69,26 @@
             "./assets/fonts/Fraunces_700Bold.ttf"
           ]
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#E0902F",
+          "defaultChannel": "duels"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "01c22257-f240-443b-aeb5-24cc720589a4"
+      }
+    },
+    "owner": "layoolar"
   }
 }
