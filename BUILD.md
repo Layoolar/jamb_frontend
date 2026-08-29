@@ -25,11 +25,11 @@ Goal: start every clock that isn't under your control.
 - [ ] Register a domain (needed for privacy policy, and later email)
 
 ### While those process
-- [ ] Create the two repos / init `jamb_frontend` and `jamb_backend`
-- [ ] Pick an Expo SDK that targets **Android API 36**. New apps submitted after 31 Aug 2026 are required to target API 36 (Android 16) — verify before you build anything on top.
+- [x] Create the two repos / init `jamb_frontend` and `jamb_backend`
+- [x] Pick an Expo SDK that targets **Android API 36**. Using SDK 57 with `targetSdkVersion: 36` pinned explicitly in `app.json` via `expo-build-properties`, not inherited from the SDK default — new apps submitted after 31 Aug 2026 are required to target it.
 - [ ] Google Cloud project + OAuth consent screen
 - [ ] Sentry project, both platforms
-- [ ] Decide the app name — **not containing "JAMB"** (trademark, see PLAN §5)
+- [x] Decide the app name — **SabiPass**, `com.sabipass.app`, scheme `sabipass://`
 
 ### Deferred to when you have a build
 - [ ] Apple App ID + tick "Sign In with Apple"
@@ -45,7 +45,7 @@ Goal: start every clock that isn't under your control.
 
 Goal: prove the core premise before building anything on top of it. Nothing else happens this phase.
 
-- [ ] Bare Expo app, EAS **development build** installed on a physical Android device
+- [ ] Bare Expo app, EAS **development build** installed on a physical Android device *(spike screen is written — `src/app/index.tsx`; you run it)*
 - [ ] Same on a physical iPhone
 - [ ] `expo-screen-capture` → `preventScreenCaptureAsync()` on one screen
 - [ ] **Android: screenshot blocked / black**
@@ -67,7 +67,7 @@ Goal: prove the core premise before building anything on top of it. Nothing else
 Goal: a complete duel playable end-to-end with curl. No React Native this phase.
 
 ### Foundation
-- [ ] Express 5 + TypeScript + tsx, Postgres 17 local (Docker on Windows)
+- [ ] Express 5 + TypeScript + tsx, Postgres 18 local (installed natively — no Docker needed)
 - [ ] Drizzle schema from PLAN §6, first migration
 - [ ] Zod schemas — request **and response** (PLAN §2.2)
 - [ ] Error handler, request logging, health endpoint
@@ -98,7 +98,7 @@ Goal: a complete duel playable end-to-end with curl. No React Native this phase.
 
 ### Content
 - [ ] `scripts/import.ts` — CSV → questions
-- [ ] Seed 100 real questions by hand across the 3 subjects
+- [ ] Seed 100 real questions by hand across the 4 subjects
 - [ ] `POST /questions/:id/report` + auto-flag at 3
 
 **Exit gate:** two curl sessions play the same match to settlement, scores and winner correct. Late answers score 0. Restarting mid-question does not grant extra time.
@@ -162,7 +162,7 @@ Goal: practice mode feels good end to end. This screen is the product.
 - [ ] iOS screenshot listener → flag
 
 ### Content to launch volume
-- [ ] ~250 live questions each: English, Biology, Government
+- [ ] ~250 live questions each: English, Biology, Government, Maths (text-expressible items only — `content_format='plain'`)
 - [ ] `scripts/generate.ts` — batch AI generation
 - [ ] **Self-check pass** — independent solve, keep only where it agrees
 - [ ] Human-review 100% of AI drafts before `status='live'`
