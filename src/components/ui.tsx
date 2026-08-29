@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  type ScrollViewProps,
   Text,
   View,
   type StyleProp,
@@ -16,10 +17,13 @@ export function Screen({
   children,
   scroll = true,
   header,
+  refreshControl,
   style,
 }: {
   children: ReactNode;
   scroll?: boolean;
+  /** Pass a <RefreshControl> to make the screen pull-to-refresh. */
+  refreshControl?: ScrollViewProps['refreshControl'];
   /**
    * Rendered OUTSIDE the ScrollView so it stays pinned. A way out that scrolls
    * off the top is not a way out — you should never have to scroll to leave a
@@ -47,6 +51,7 @@ export function Screen({
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          refreshControl={refreshControl}
         >
           {inner}
         </ScrollView>
@@ -135,6 +140,43 @@ export function IconButton({
     >
       <Text style={{ fontSize: 24, lineHeight: 28, color: c.text }}>{glyph}</Text>
     </Pressable>
+  );
+}
+
+/**
+ * The SabiPass mark, drawn in views rather than shipped as an image.
+ *
+ * Four answer bubbles, one filled — the same shape as the app icon. Drawing it
+ * means it inherits the theme automatically and costs no asset, and it stays
+ * crisp at any size.
+ */
+export function BrandMark({ size = 44 }: { size?: number }) {
+  const c = useColors();
+  const gap = size * 0.12;
+  const d = (size - gap) / 2;
+  const ring = Math.max(2, d * 0.18);
+
+  return (
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel="SabiPass"
+      style={{ width: size, height: size, flexDirection: 'row', flexWrap: 'wrap', gap }}
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <View
+          key={i}
+          style={{
+            width: d,
+            height: d,
+            borderRadius: d / 2,
+            borderWidth: i === 3 ? 0 : ring,
+            borderColor: c.accent,
+            backgroundColor: i === 3 ? c.accent : 'transparent',
+          }}
+        />
+      ))}
+    </View>
   );
 }
 

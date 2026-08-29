@@ -19,7 +19,7 @@
     "android": {
       "package": "com.sabipass.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1A1714",
+        "backgroundColor": "#0E0C0A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -52,12 +52,24 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#1A1714",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#E9E2D5",
+          "image": "./assets/images/splash-icon-light.png",
+          "imageWidth": 132,
+          "dark": {
+            "backgroundColor": "#0E0C0A",
+            "image": "./assets/images/splash-icon.png"
+          }
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Fraunces_700Bold.ttf"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

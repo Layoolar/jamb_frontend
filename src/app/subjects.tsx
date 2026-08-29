@@ -135,14 +135,39 @@ export default function Subjects() {
           backgroundColor: active ? c.surfaceAlt : c.surface,
           borderRadius: radius.md,
           paddingHorizontal: space.lg,
-          justifyContent: 'center',
-          gap: 2,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: space.md,
         }}
       >
-        <Text style={{ ...font.heading, color: c.text }}>{name}</Text>
-        <Text style={{ ...font.label, color: c.textMuted }}>
-          {detail.toUpperCase()}
-        </Text>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ ...font.heading, color: c.text }}>{name}</Text>
+          <Text style={{ ...font.label, color: c.textMuted }}>
+            {detail.toUpperCase()}
+          </Text>
+        </View>
+
+        {/*
+          An explicit indicator, not just a tint. Selection signalled by colour
+          alone is invisible to a colour-blind player — and it doubles as the
+          answer-sheet bubble that the whole identity is built on.
+        */}
+        <View
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            borderWidth: 2,
+            borderColor: active ? c.accent : c.border,
+            backgroundColor: active ? c.accent : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {active ? (
+            <Text style={{ ...font.label, color: c.onAccent }}>✓</Text>
+          ) : null}
+        </View>
       </Pressable>
     );
   }

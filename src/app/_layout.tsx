@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
+import * as SplashScreen from 'expo-splash-screen';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
@@ -25,6 +26,9 @@ if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
   });
 }
 
+// Must be called before the first render, hence module scope rather than an effect.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -40,6 +44,7 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   const scheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const c = colors[scheme];
+  const status = useAuth((s) => s.status);
   const restore = useAuth((s) => s.restore);
   const forceSignOut = useAuth((s) => s.forceSignOut);
 
@@ -47,6 +52,23 @@ export default function RootLayout() {
     setUnauthenticatedHandler(forceSignOut);
     restore();
   }, [restore, forceSignOut]);
+
+  /**
+   * Hold the native splash until auth has resolved.
+   *
+   * Without this the splash hides the moment JS mounts, and the boot gate then
+   * shows a spinner while SecureStore is read and /auth/me is called — so a
+   * cold start flashes splash, blank, spinner, home. On a low-end Android with
+   * a 4MB Hermes bundle that sequence is very visible.
+   *
+   * It is NOT held any longer than that. A launch screen should make launch
+   * feel instant, not serve as a logo showcase; when auth resolves in 150ms the
+   * splash should be gone in 150ms.
+   */
+  useEffect(() => {
+    if (status === 'loading') return;
+    SplashScreen.hideAsync().catch(() => {});
+  }, [status]);
 
   /**
    * Tapping a "you won / you lost" notification opens that match's result.

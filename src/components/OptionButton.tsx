@@ -41,8 +41,18 @@ export function OptionButton({
           ? c.surfaceAlt
           : c.surface;
 
+  // Per-theme, not hardcoded: the dark palette's answer colours need ink on
+  // them, the light palette's need white. A fixed value fails AA in one theme.
+  const fg =
+    state === 'correct'
+      ? c.onCorrect
+      : state === 'wrong'
+        ? c.onWrong
+        : state === 'dimmed'
+          ? c.textMuted
+          : c.text;
+
   const onTint = state === 'correct' || state === 'wrong';
-  const fg = onTint ? '#0F0D0A' : state === 'dimmed' ? c.textMuted : c.text;
 
   return (
     <Pressable
@@ -70,7 +80,7 @@ export function OptionButton({
           height: 26,
           borderRadius: radius.pill,
           borderWidth: 1,
-          borderColor: onTint ? '#0F0D0A' : c.border,
+          borderColor: onTint ? fg : c.border,
           alignItems: 'center',
           justifyContent: 'center',
         }}

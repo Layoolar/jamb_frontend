@@ -66,6 +66,9 @@ export default function Play() {
   const flags = useRef<IntegrityFlag[]>([]);
   const submitting = useRef(false);
   const [splitScreen, setSplitScreen] = useState(isSplitScreen());
+  const [retrying, setRetrying] = useState(false);
+  const [strikeNotice, setStrikeNotice] = useState(false);
+  const strikesSeen = useRef(0);
 
   /**
    * Capture protection is armed for the LIFETIME OF THIS SCREEN ONLY.
@@ -183,6 +186,14 @@ export default function Play() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid).catch(() => {});
         }
 
+        // A strike costs you the question. Warn on the FIRST one — the lobby
+        // states the rule, but nobody reads a rules screen, and being ejected
+        // with no warning reads as a bug rather than a fair cop (PLAN §4).
+        if (r.strikes > strikesSeen.current && !r.forfeited) {
+          strikesSeen.current = r.strikes;
+          setStrikeNotice(true);
+        }
+
         const done = r.isFinalQuestion || r.forfeited;
 
         setTimeout(() => {
@@ -197,11 +208,50 @@ export default function Play() {
         }, REVEAL_MS);
       } catch (e) {
         submitting.current = false;
-        setError(
-          e instanceof ApiError
-            ? e.message
-            : 'Could not submit that answer. Check your connection.',
-        );
+
+        // A late answer is final — the server already scored it zero, so
+        // retrying is pointless and re-showing the question would mislead.
+        if (e instanceof ApiError && e.status !== 0 && e.status < 500) {
+          setError(e.message);
+          return;
+        }
+
+        /**
+         * Network failure. Do NOT take over the screen: the server-side
+         * deadline is still running, so a full-screen error hides the question
+         * during the seconds the player still has. Keep everything visible,
+         * show a banner, and retry automatically — waiting for a human to tap
+         * "try again" is far too slow against a 15-second clock.
+         */
+        setRetrying(true);
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+          try {
+            const r = await api.submitAnswer(
+              matchId,
+              question.questionId,
+              selectedIndex,
+              flags.current,
+            );
+            flags.current = [];
+            setAnswer(r);
+            setRetrying(false);
+            if (r.runningScore !== null) setScore(r.runningScore);
+            setTimeout(() => {
+              submitting.current = false;
+              if (r.isFinalQuestion || r.forfeited) finish();
+              else {
+                setPhase('transition');
+                void serve();
+              }
+            }, REVEAL_MS);
+            return;
+          } catch {
+            // keep trying
+          }
+        }
+        setRetrying(false);
+        setError('Still no connection. Your answer was not recorded.');
       }
     },
     [matchId, question, serve, finish],
@@ -231,6 +281,30 @@ export default function Play() {
             }}
           />
           <Button label="Leave match" variant="ghost" onPress={() => router.replace('/home')} />
+        </View>
+      </Screen>
+    );
+  }
+
+  /**
+   * Strike one. Blocking and deliberate: the whole point is that the second
+   * strike must never be a surprise. Shown after the answer is safely recorded,
+   * so acknowledging it costs the player nothing.
+   */
+  if (strikeNotice) {
+    return (
+      <Screen scroll={false}>
+        <View style={{ flex: 1, justifyContent: 'center', gap: space.lg }}>
+          <Text style={{ ...font.label, color: c.wrong }}>STRIKE ONE</Text>
+          <Text style={{ ...font.title, color: c.text, lineHeight: 30 }}>
+            You left the app during that question
+          </Text>
+          <Body muted>
+            It scored zero. Leave once more and you forfeit the match — the
+            clock keeps running on our servers whether the app is open or not.
+          </Body>
+          <View style={{ flex: 1 }} />
+          <Button label="Got it — keep playing" onPress={() => setStrikeNotice(false)} />
         </View>
       </Screen>
     );
@@ -287,6 +361,23 @@ export default function Play() {
           paused={phase !== 'question'}
           onExpire={() => submit(null)}
         />
+
+        {/* Inline, never a screen takeover — the clock is still running and the
+            player needs to keep seeing the question. */}
+        {retrying ? (
+          <View
+            style={{
+              backgroundColor: c.surfaceAlt,
+              borderRadius: radius.sm,
+              paddingVertical: space.sm,
+              paddingHorizontal: space.md,
+            }}
+          >
+            <Text style={{ ...font.label, color: c.textMuted }}>
+              CONNECTION DROPPED — RESENDING YOUR ANSWER
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={{ paddingVertical: space.xl, minHeight: 120, justifyContent: 'center' }}>

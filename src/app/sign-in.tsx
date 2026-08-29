@@ -3,7 +3,7 @@ import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
 import { ApiError, api } from '@/lib/api';
 import { useColors } from '@/lib/useColors';
-import { Body, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
+import { Body, BrandMark, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
 import { useAuth } from '@/store/auth';
 import { font, radius, space, TAP_TARGET } from '@/theme';
 
@@ -59,12 +59,15 @@ export default function SignIn() {
 
   return (
     <Screen>
-      <View style={{ gap: space.xs, marginTop: space.xxl }}>
-        <Eyebrow>JAMB PRACTICE, HEAD TO HEAD</Eyebrow>
-        <Title>SabiPass</Title>
-        <Body muted>
-          Ten questions, fifteen seconds each. Challenge a friend or play solo.
-        </Body>
+      <View style={{ gap: space.md, marginTop: space.xxl }}>
+        <BrandMark size={52} />
+        <View style={{ gap: space.xs }}>
+          <Eyebrow>JAMB PRACTICE, HEAD TO HEAD</Eyebrow>
+          <Title>SabiPass</Title>
+          <Body muted>
+            Ten questions, fifteen seconds each. Challenge a friend or play solo.
+          </Body>
+        </View>
       </View>
 
       <View style={{ gap: space.md, marginTop: space.xl }}>

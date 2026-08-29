@@ -67,7 +67,14 @@ export function TimerBar({
   const fraction = Math.max(0, Math.min(1, left / total));
   const seconds = Math.ceil(left / 1000);
 
-  const tint = fraction > 0.5 ? c.accent : fraction > 0.2 ? c.warn : c.wrong;
+  /**
+   * Two states, not three. The bar used to run accent -> amber -> red, but
+   * accent (33°) and amber (42°) are nine degrees apart, so the first
+   * transition was invisible at exactly the moment it mattered. Three changes
+   * inside fifteen seconds was also more than anyone can read under pressure.
+   */
+  const runningOut = fraction <= 0.25;
+  const tint = runningOut ? c.wrong : c.accent;
 
   return (
     <View style={{ gap: space.xs }}>

@@ -54,6 +54,11 @@ export type MatchSummary = {
   totalQuestions: number;
   answeredCount: number;
   expiresAt: string;
+  /** Null until a duel settles — the match list obeys the same seal as the result. */
+  outcome: 'won' | 'lost' | 'draw' | null;
+  yourScore: number | null;
+  opponentScore: number | null;
+  opponentName: string | null;
 };
 
 export type ServedQuestion = {
@@ -106,6 +111,7 @@ export type MatchResult = {
   matchId: string;
   status: MatchStatus;
   mode: MatchMode;
+  totalQuestions: number;
   /** Only present for the creator, and only while the duel is still open. */
   inviteCode: string | null;
   subject: { slug: string; name: string } | null;

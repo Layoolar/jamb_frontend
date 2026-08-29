@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Redirect, router, useLocalSearchParams } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
 import { JoinByCode } from '@/components/JoinByCode';
 import { api } from '@/lib/api';
 import { useColors } from '@/lib/useColors';
@@ -18,10 +19,12 @@ import {
   Title,
 } from '@/components/ui';
 import { useAuth } from '@/store/auth';
+import type { MatchSummary } from '@/lib/types';
 import { font, radius, space } from '@/theme';
 
 export default function Home() {
   const c = useColors();
+  const qc = useQueryClient();
   const status = useAuth((s) => s.status);
   const user = useAuth((s) => s.user);
   // A sabipass://duel/CODE link lands here with the code pre-filled.
@@ -34,6 +37,16 @@ export default function Home() {
     enabled: status === 'signedIn',
   });
 
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['me'] }),
+      qc.invalidateQueries({ queryKey: ['matches'] }),
+    ]);
+    setRefreshing(false);
+  }, [qc]);
+
   if (status === 'loading') {
     return (
       <Screen scroll={false}>
@@ -44,10 +57,19 @@ export default function Home() {
   if (status === 'signedOut') return <Redirect href="/sign-in" />;
 
   const stats = me.data?.stats;
-  const pending = (matches.data?.matches ?? []).filter(
+  const all = matches.data?.matches ?? [];
+  const pending = all.filter(
     (m) => m.status !== 'settled' && m.answeredCount < m.totalQuestions,
   );
-  const recent = (matches.data?.matches ?? []).filter((m) => m.status === 'settled');
+  const waiting = all.filter(
+    (m) => m.status === 'awaiting_opponent' && m.answeredCount >= m.totalQuestions,
+  );
+  const recent = all.filter((m) => m.status === 'settled');
+
+  // A brand-new account has nothing to show. Four zeros under "WELCOME BACK" is
+  // the worst possible first impression, so explain the game instead and let
+  // stats arrive once they mean something.
+  const isNew = (stats?.duelsPlayed ?? 0) === 0 && all.length === 0;
 
   return (
     <Screen
@@ -57,23 +79,75 @@ export default function Home() {
           right={<IconButton glyph="☰" label="Profile" onPress={() => router.push('/profile')} />}
         />
       }
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={refresh}
+          tintColor={c.accent}
+          colors={[c.accent]}
+        />
+      }
     >
       <View style={{ gap: space.xs }}>
-        <Eyebrow>WELCOME BACK</Eyebrow>
+        <Eyebrow>{isNew ? 'WELCOME' : 'WELCOME BACK'}</Eyebrow>
         <Title>{user?.username ?? 'Player'}</Title>
       </View>
 
-      <Card>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-          <StatPill label="WON" value={String(stats?.wins ?? 0)} />
-          <StatPill label="LOST" value={String(stats?.losses ?? 0)} />
-          <StatPill label="STREAK" value={String(stats?.streak ?? 0)} />
-          <StatPill label="BEST" value={String(stats?.bestStreak ?? 0)} />
-        </View>
-      </Card>
+      {isNew ? (
+        <Card>
+          <Text style={{ ...font.heading, color: c.text }}>How a duel works</Text>
+          <HowRow n="1" text="Ten questions. Fifteen seconds each." c={c} />
+          <HowRow n="2" text="Send the code to a friend — same questions, their turn." c={c} />
+          <HowRow n="3" text="Neither of you sees a score until you have both played." c={c} />
+        </Card>
+      ) : (
+        <Card>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <StatPill label="WON" value={String(stats?.wins ?? 0)} />
+            <StatPill label="LOST" value={String(stats?.losses ?? 0)} />
+            <StatPill label="STREAK" value={String(stats?.streak ?? 0)} />
+            <StatPill label="BEST" value={String(stats?.bestStreak ?? 0)} />
+          </View>
+        </Card>
+      )}
 
       {matches.isError ? (
-        <ErrorNote message="Could not load your matches. Pull to retry or check your connection." />
+        <ErrorNote message="Could not load your matches. Pull down to try again." />
+      ) : null}
+
+      {/* An unfinished match sits ABOVE the primary action — it is probably why
+          the app was reopened, and it used to be buried below the fold. */}
+      {pending.length > 0 ? (
+        <View style={{ gap: space.sm }}>
+          {pending.map((m) => (
+            <Pressable
+              key={m.matchId}
+              onPress={() => router.push(`/play/${m.matchId}`)}
+              accessibilityRole="button"
+              style={{
+                backgroundColor: c.surface,
+                borderColor: c.accent,
+                borderWidth: 1,
+                borderRadius: radius.md,
+                padding: space.lg,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <View style={{ gap: 2 }}>
+                <Text style={{ ...font.heading, color: c.text }}>
+                  Resume {m.subject?.name ?? 'Mixed'}
+                </Text>
+                <Text style={{ ...font.label, color: c.textMuted }}>
+                  {m.mode === 'solo' ? 'PRACTICE' : 'DUEL'} ·{' '}
+                  {m.answeredCount}/{m.totalQuestions} ANSWERED
+                </Text>
+              </View>
+              <Text style={{ ...font.heading, color: c.accent }}>›</Text>
+            </Pressable>
+          ))}
+        </View>
       ) : null}
 
       <View style={{ gap: space.md }}>
@@ -86,36 +160,16 @@ export default function Home() {
         <JoinByCode initialCode={typeof code === 'string' ? code : ''} />
       </View>
 
-      {pending.length > 0 ? (
+      {waiting.length > 0 ? (
         <View style={{ gap: space.sm }}>
-          <Text style={{ ...font.heading, color: c.text }}>Continue</Text>
-          {pending.map((m) => (
-            <Pressable
+          <Text style={{ ...font.heading, color: c.text }}>Waiting for an opponent</Text>
+          {waiting.map((m) => (
+            <MatchRow
               key={m.matchId}
-              onPress={() => router.push(`/play/${m.matchId}`)}
-              accessibilityRole="button"
-              style={{
-                backgroundColor: c.surface,
-                borderColor: c.border,
-                borderWidth: 1,
-                borderRadius: radius.md,
-                padding: space.lg,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <View style={{ gap: 2 }}>
-                <Text style={{ ...font.heading, color: c.text }}>
-                  {m.subject?.name ?? 'Mixed'}
-                </Text>
-                <Text style={{ ...font.label, color: c.textMuted }}>
-                  {m.mode === 'solo' ? 'PRACTICE' : 'DUEL'} ·{' '}
-                  {m.answeredCount}/{m.totalQuestions} ANSWERED
-                </Text>
-              </View>
-              <Text style={{ ...font.heading, color: c.accent }}>Resume</Text>
-            </Pressable>
+              match={m}
+              c={c}
+              onPress={() => router.push(`/result/${m.matchId}`)}
+            />
           ))}
         </View>
       ) : null}
@@ -123,30 +177,18 @@ export default function Home() {
       {recent.length > 0 ? (
         <View style={{ gap: space.sm }}>
           <Text style={{ ...font.heading, color: c.text }}>Finished</Text>
-          {recent.slice(0, 5).map((m) => (
-            <Pressable
+          {recent.slice(0, 6).map((m) => (
+            <MatchRow
               key={m.matchId}
+              match={m}
+              c={c}
               onPress={() => router.push(`/result/${m.matchId}`)}
-              accessibilityRole="button"
-              style={{
-                paddingVertical: space.md,
-                paddingHorizontal: space.lg,
-                borderRadius: radius.sm,
-                backgroundColor: c.surfaceAlt,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-              }}
-            >
-              <Text style={{ ...font.body, fontSize: 14, color: c.text }}>
-                {m.subject?.name ?? 'Mixed'}
-              </Text>
-              <Text style={{ ...font.label, color: c.textMuted }}>VIEW</Text>
-            </Pressable>
+            />
           ))}
         </View>
       ) : null}
 
-      <View style={{ flex: 1 }} />
+      <View style={{ flex: 1, minHeight: space.lg }} />
 
       {__DEV__ ? (
         <Link href="/spike" asChild>
@@ -157,7 +199,107 @@ export default function Home() {
           </Pressable>
         </Link>
       ) : null}
-
     </Screen>
+  );
+}
+
+function HowRow({
+  n,
+  text,
+  c,
+}: {
+  n: string;
+  text: string;
+  c: ReturnType<typeof useColors>;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', gap: space.md, alignItems: 'flex-start' }}>
+      <Text style={{ ...font.label, color: c.accent, paddingTop: 3 }}>{n}</Text>
+      <Text style={{ ...font.body, color: c.textMuted, flex: 1, lineHeight: 22 }}>
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+/** A finished or waiting match. Shows the outcome, not a generic "VIEW". */
+function MatchRow({
+  match,
+  c,
+  onPress,
+}: {
+  match: MatchSummary;
+  c: ReturnType<typeof useColors>;
+  onPress: () => void;
+}) {
+  const tint =
+    match.outcome === 'won'
+      ? c.correct
+      : match.outcome === 'lost'
+        ? c.wrong
+        : match.outcome === 'draw'
+          ? c.textMuted
+          : c.sealed;
+
+  const label =
+    match.outcome === 'won'
+      ? 'WON'
+      : match.outcome === 'lost'
+        ? 'LOST'
+        : match.outcome === 'draw'
+          ? 'DREW'
+          : match.mode === 'solo'
+            ? 'PRACTICE'
+            : 'SEALED';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.md,
+        paddingVertical: space.md,
+        paddingHorizontal: space.lg,
+        borderRadius: radius.md,
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.border,
+      }}
+    >
+      {/* A severity stripe carries the outcome without relying on text alone. */}
+      <View
+        style={{ width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: tint }}
+      />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ ...font.body, color: c.text }}>
+          {match.subject?.name ?? 'Mixed'}
+        </Text>
+        <Text style={{ ...font.label, color: tint }}>
+          {label}
+          {match.opponentName ? ` · vs ${match.opponentName}` : ''}
+        </Text>
+      </View>
+      {match.yourScore !== null ? (
+        <Text
+          style={{
+            ...font.heading,
+            color: c.text,
+            fontVariant: ['tabular-nums'],
+          }}
+        >
+          {match.yourScore}
+          {match.opponentScore !== null ? (
+            <Text style={{ ...font.label, color: c.textMuted }}>
+              {'  '}
+              {match.opponentScore}
+            </Text>
+          ) : null}
+        </Text>
+      ) : (
+        <Text style={{ ...font.heading, color: c.textMuted }}>›</Text>
+      )}
+    </Pressable>
   );
 }

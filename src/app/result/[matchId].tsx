@@ -9,7 +9,6 @@ import { useColors } from '@/lib/useColors';
 import {
   Body,
   Button,
-  Card,
   ErrorNote,
   Eyebrow,
   Header,
@@ -99,14 +98,41 @@ export default function Result() {
         <Title>{headline}</Title>
         {!solo && !r.revealed ? (
           <Body muted>
-            Nobody sees a score until the duel is decided — that way neither of
-            you can pick your moment. We&apos;ll notify you the second it lands.
+            {r.opponent
+              ? `Your opponent has answered ${r.opponent.answeredCount} of ${r.totalQuestions}. `
+              : 'Send the code below and your opponent answers the same ten. '}
+            Neither of you sees a score until you have both played — that way
+            nobody picks their moment. We&apos;ll notify you the second it lands.
           </Body>
+        ) : null}
+
+        {r.isBotOpponent && r.revealed ? (
+          <Body muted>Nobody claimed your duel, so the bot played it.</Body>
         ) : null}
       </View>
 
-      <Card>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      {/*
+        The scoreboard is the share asset — the only screen a NON-user ever
+        sees, pasted into a WhatsApp group. It gets the accent edge and the
+        heaviest hierarchy on the screen for that reason, not for decoration.
+      */}
+      <View
+        style={{
+          backgroundColor: c.surface,
+          borderRadius: radius.lg,
+          borderWidth: 1,
+          borderColor: r.revealed && won ? c.accent : c.border,
+          overflow: 'hidden',
+        }}
+      >
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: space.xxl,
+            paddingHorizontal: space.lg,
+          }}
+        >
           <ScoreSide
             name="You"
             score={r.you.score}
@@ -116,25 +142,44 @@ export default function Result() {
           />
           {r.opponent ? (
             <>
-              <Text style={{ ...font.label, color: c.textMuted, paddingHorizontal: space.md }}>
-                VS
-              </Text>
+              <View style={{ alignItems: 'center', paddingHorizontal: space.sm }}>
+                <View
+                  style={{ width: 1, height: 34, backgroundColor: c.border }}
+                />
+                <Text
+                  style={{ ...font.label, color: c.textMuted, paddingVertical: 4 }}
+                >
+                  VS
+                </Text>
+                <View
+                  style={{ width: 1, height: 34, backgroundColor: c.border }}
+                />
+              </View>
               <ScoreSide
                 name={r.opponent.user.isBot ? 'Bot' : r.opponent.user.username}
                 score={r.opponent.score}
                 ms={r.opponent.totalMs}
                 forfeited={r.opponent.forfeited}
-                highlight={!won && !r.isDraw && r.opponent.finished}
+                highlight={!won && !r.isDraw && r.opponent.finished && r.revealed}
               />
             </>
           ) : null}
         </View>
-        <Text style={{ ...font.label, color: c.textMuted, textAlign: 'center' }}>
-          {r.revealed
-            ? `${correctCount} OF ${r.questions.length} CORRECT`
-            : `${r.you.answeredCount} ANSWERED · SCORE SEALED`}
-        </Text>
-      </Card>
+
+        <View
+          style={{
+            backgroundColor: c.surfaceAlt,
+            paddingVertical: space.sm,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ ...font.label, color: c.textMuted }}>
+            {r.revealed
+              ? `${correctCount} OF ${r.questions.length} CORRECT · ${(r.subject?.name ?? 'MIXED').toUpperCase()}`
+              : `${r.you.answeredCount} OF ${r.totalQuestions} ANSWERED · SEALED`}
+          </Text>
+        </View>
+      </View>
 
       {r.you.forfeited ? (
         <ErrorNote message="You forfeited this match by leaving the app during a question." />
@@ -228,20 +273,38 @@ export default function Result() {
     return (
       <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
         <Text style={{ ...font.label, color: c.textMuted }}>{name.toUpperCase()}</Text>
-        <Text
-          style={{
-            ...font.display,
-            color: score === null ? c.textMuted : highlight ? c.accent : c.text,
-            fontVariant: ['tabular-nums'],
-          }}
-        >
-          {score === null ? '—' : score}
-        </Text>
+        {score === null ? (
+          // A sealed score is deliberate, so it must not look like missing
+          // data. An em-dash reads as "broken"; a filled bubble reads as
+          // "recorded, not yet opened".
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: c.sealed,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ ...font.heading, color: c.onSealed }}>✓</Text>
+          </View>
+        ) : (
+          <Text
+            style={{
+              ...font.display,
+              color: highlight ? c.accent : c.text,
+              fontVariant: ['tabular-nums'],
+            }}
+          >
+            {score}
+          </Text>
+        )}
         <Text style={{ ...font.label, color: c.textMuted }}>
           {forfeited
             ? 'FORFEIT'
             : ms === null
-              ? 'HIDDEN'
+              ? 'SEALED'
               : `${(ms / 1000).toFixed(1)}S`}
         </Text>
       </View>

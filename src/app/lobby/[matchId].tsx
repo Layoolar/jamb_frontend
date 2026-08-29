@@ -9,15 +9,25 @@
 import { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
-import { Body, Button, Card, Eyebrow, Header, Screen, Title } from '@/components/ui';
+import { Button, Card, Eyebrow, Header, Screen, Title } from '@/components/ui';
 import { useColors } from '@/lib/useColors';
-import { font, QUESTION_SECONDS, space } from '@/theme';
+import { font, QUESTION_SECONDS, radius, space } from '@/theme';
 
-const RULES = [
-  `${QUESTION_SECONDS} seconds per question. The clock runs on our server, so closing the app does not pause it.`,
-  'Faster correct answers score more. Wrong answers score zero — there is no negative marking.',
-  'Screenshots are blocked while a question is on screen.',
-  'Leaving the app during a question scores that question zero. Twice and you forfeit the match.',
+/**
+ * Scannable rows, not paragraphs. Nobody reads a wall of policy text before a
+ * timed game — the point is that the strike rule registers, and it only
+ * registers if the whole list can be taken in at a glance.
+ */
+const RULES: { key: string; text: string; stern?: boolean }[] = [
+  { key: `${QUESTION_SECONDS}s`, text: 'per question. The clock runs on our server.' },
+  { key: 'FAST', text: 'Quicker correct answers score more.' },
+  { key: '0', text: 'Wrong answers score zero. No negative marking.' },
+  { key: 'NO', text: 'Screenshots are blocked during a question.' },
+  {
+    key: '2×',
+    text: 'Leave the app mid-question and it scores zero. Twice and you forfeit.',
+    stern: true,
+  },
 ];
 
 export default function Lobby() {
@@ -38,16 +48,45 @@ export default function Lobby() {
   if (countdown !== null) {
     return (
       <Screen scroll={false}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xl }}>
+          {/*
+            The countdown fills an answer bubble per tick. It is the same shape
+            as the mark and the subject picker, so the anticipation is carried by
+            the app's own vocabulary rather than by a generic number.
+          */}
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            {[3, 2, 1].map((n) => {
+              const filled = countdown <= n;
+              return (
+                <View
+                  key={n}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    borderWidth: 2,
+                    borderColor: filled ? c.accent : c.border,
+                    backgroundColor: filled ? c.accent : 'transparent',
+                  }}
+                />
+              );
+            })}
+          </View>
+
           <Text
             style={{
-              fontSize: 96,
+              fontSize: 104,
               fontWeight: '700',
-              color: c.accent,
+              color: countdown === 0 ? c.correct : c.accent,
               fontVariant: ['tabular-nums'],
+              lineHeight: 116,
             }}
           >
             {countdown === 0 ? 'GO' : countdown}
+          </Text>
+
+          <Text style={{ ...font.label, color: c.textMuted }}>
+            {QUESTION_SECONDS} SECONDS PER QUESTION
           </Text>
         </View>
       </Screen>
@@ -62,15 +101,41 @@ export default function Lobby() {
       </View>
 
       <Card>
-        <View style={{ gap: space.lg }}>
-          {RULES.map((rule, i) => (
-            <View key={i} style={{ flexDirection: 'row', gap: space.md }}>
-              <Text style={{ ...font.label, color: c.accent, paddingTop: 3 }}>
-                {String(i + 1).padStart(2, '0')}
-              </Text>
-              <View style={{ flex: 1 }}>
-                <Body muted>{rule}</Body>
+        <View style={{ gap: space.md }}>
+          {RULES.map((rule) => (
+            <View
+              key={rule.key}
+              style={{ flexDirection: 'row', gap: space.md, alignItems: 'center' }}
+            >
+              <View
+                style={{
+                  minWidth: 42,
+                  paddingVertical: 3,
+                  borderRadius: radius.sm,
+                  backgroundColor: rule.stern ? c.wrong : c.surfaceAlt,
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    ...font.label,
+                    color: rule.stern ? c.onWrong : c.textMuted,
+                  }}
+                >
+                  {rule.key}
+                </Text>
               </View>
+              <Text
+                style={{
+                  ...font.body,
+                  fontSize: 15,
+                  color: rule.stern ? c.text : c.textMuted,
+                  flex: 1,
+                  lineHeight: 21,
+                }}
+              >
+                {rule.text}
+              </Text>
             </View>
           ))}
         </View>
