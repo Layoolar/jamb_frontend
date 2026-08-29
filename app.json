@@ -25,7 +25,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": ["android.permission.DETECT_SCREEN_CAPTURE"]
+      "permissions": [
+        "android.permission.DETECT_SCREEN_CAPTURE"
+      ]
     },
     "web": {
       "output": "static",
@@ -54,7 +56,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,

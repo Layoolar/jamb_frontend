@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -8,6 +9,21 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { setUnauthenticatedHandler } from '@/lib/api';
 import { useAuth } from '@/store/auth';
 import { colors } from '@/theme';
+
+/**
+ * Sentry. Optional — with EXPO_PUBLIC_SENTRY_DSN unset this is a no-op, so a
+ * dev build needs no account. Android device diversity in this market will
+ * surface crashes no simulator reproduces, so turn it on before the beta.
+ */
+if (process.env.EXPO_PUBLIC_SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+    // Off in dev so local errors don't burn quota.
+    enabled: !__DEV__,
+    sendDefaultPii: false,
+    tracesSampleRate: 0.1,
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {

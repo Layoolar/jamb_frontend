@@ -181,7 +181,7 @@ Goal: practice mode feels good end to end. This screen is the product.
 - [x] Provision the box, Postgres + app co-located, systemd, Caddy TLS *(configs written in `deploy/`; you run them on a real host)*
 - [x] Nightly `pg_dump` to object storage — `deploy/backup.sh`, refuses to accept a suspiciously small dump
 - [ ] **Restore a backup and verify it works** — `deploy/restore-check.sh` written; **run it on the real host before launch**
-- [ ] Sentry live on both platforms
+- [x] Sentry wired on both platforms, no-op without a DSN — **paste your DSN into `SENTRY_DSN` / `EXPO_PUBLIC_SENTRY_DSN` to switch it on**
 
 **Exit gate:** production is live and serving real duels. Backup restore verified.
 
@@ -217,22 +217,22 @@ Goal: practice mode feels good end to end. This screen is the product.
 ## Phase 7 — Store submission (Days 33–40)
 
 ### Both stores
-- [ ] Privacy policy + terms live at your domain
-- [ ] Age rating questionnaires
-- [ ] Description, keywords, category
+- [ ] Privacy policy + terms live at your domain — **drafted in `store/`; you host them and fill the contact address**
+- [x] Age rating questionnaires — answers in `store/listing.md` (note: answer YES to user interaction — usernames are visible to opponents)
+- [x] Description, keywords, category — drafted in `store/listing.md`
 - [ ] Support contact
 
 ### Apple
 - [ ] Screenshots at **6.9" iPhone (1320×2868)** — Apple scales down from the largest size per family. Add 13" iPad only if you support iPad.
-- [ ] App Privacy details — declare email and any device identifiers
+- [x] App Privacy details — exact answers in `store/listing.md`
 - [ ] Export compliance (standard HTTPS exemption)
 - [ ] Confirm in-app account deletion is reachable — a known rejection reason
 - [ ] Submit
 
 ### Google
 - [ ] Phone screenshots + **feature graphic 1024×500**
-- [ ] Data Safety form
-- [ ] Target API 36 confirmed
+- [x] Data Safety form — exact answers in `store/listing.md`
+- [x] Target API 36 confirmed — verified in the generated `gradle.properties`
 - [ ] Promote to production
 
 **Exit gate:** approved on both stores.
