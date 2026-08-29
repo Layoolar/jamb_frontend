@@ -45,7 +45,7 @@ Goal: start every clock that isn't under your control.
 
 Goal: prove the core premise before building anything on top of it. Nothing else happens this phase.
 
-- [ ] Bare Expo app, EAS **development build** installed on a physical Android device *(spike screen is written — `src/app/index.tsx`; you run it)*
+- [ ] Bare Expo app, EAS **development build** installed on a physical Android device *(spike screen is written — route `/spike`, reachable from the DEV link at the bottom of Home; you run it)*
 - [ ] Same on a physical iPhone
 - [ ] `expo-screen-capture` → `preventScreenCaptureAsync()` on one screen
 - [ ] **Android: screenshot blocked / black**
@@ -109,23 +109,23 @@ Goal: a complete duel playable end-to-end with curl. No React Native this phase.
 
 Goal: practice mode feels good end to end. This screen is the product.
 
-- [ ] Expo app, expo-router, `theme.ts` tokens
-- [ ] Typed API client + token refresh interceptor
-- [ ] Zustand match store, TanStack Query for server data
-- [ ] Auth screens — Google, Apple (iOS only), email/password
+- [x] Expo app, expo-router, `theme.ts` tokens
+- [x] Typed API client + token refresh interceptor
+- [x] Zustand store for auth, TanStack Query for server data *(match state is component-local — a store would add indirection with no shared reader)*
+- [ ] Auth screens — Google, Apple (iOS only), email/password *(email/password done; Google/Apple buttons land in Phase 4 with the OAuth client registration — dead buttons are worse than none)*
 - [ ] **Test Google sign-in against a real release build, not just the dev build**
-- [ ] Username picker on first launch
-- [ ] Home screen — record, streak, entry points
-- [ ] Subject picker
-- [ ] Lobby — rules incl. the strike rule, 3-2-1 countdown
-- [ ] **Question screen** — shrinking timer bar, 4 full-width options (min 56px), no nav
-- [ ] `selectable={false}` on stems; Android back gesture disabled mid-question
-- [ ] ~400ms next-question transition, request fired at animation start
-- [ ] Answer reveal — highlight, explanation, report link
-- [ ] Haptics: select, and a stronger one on correct
-- [ ] Practice mode end to end
-- [ ] Result screen
-- [ ] `prefers-reduced-motion` equivalent respected
+- [x] Username picker on first launch
+- [x] Home screen — record, streak, entry points
+- [x] Subject picker
+- [x] Lobby — rules incl. the strike rule, 3-2-1 countdown
+- [x] **Question screen** — shrinking timer bar, 4 full-width options (min 56px), no nav
+- [x] `selectable={false}` on stems; Android back gesture disabled mid-question
+- [x] ~400ms next-question transition, request fired at animation start
+- [x] Answer reveal — highlight, explanation, report link
+- [x] Haptics: select, and a stronger one on correct
+- [x] Practice mode end to end
+- [x] Result screen
+- [x] `prefers-reduced-motion` equivalent respected
 - [ ] **Test on a low-end Android** and on 3G throttle
 
 **Exit gate:** you can play 10 practice questions and it feels good enough that you'd show someone. Timer never desyncs from the server.

@@ -1,0 +1,130 @@
+import { useState } from 'react';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Redirect, router } from 'expo-router';
+import { ApiError, api } from '@/lib/api';
+import { useColors } from '@/lib/useColors';
+import { Body, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
+import { useAuth } from '@/store/auth';
+import { font, radius, space, TAP_TARGET } from '@/theme';
+
+export default function SignIn() {
+  const c = useColors();
+  const status = useAuth((s) => s.status);
+  const setUser = useAuth((s) => s.setUser);
+
+  const [mode, setMode] = useState<'signup' | 'login'>('signup');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (status === 'signedIn') return <Redirect href="/home" />;
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const r =
+        mode === 'signup'
+          ? await api.signup(email.trim(), password)
+          : await api.login(email.trim(), password);
+      setUser(r.user);
+      // New accounts get a name derived from their email; let them fix it once.
+      if (r.isNewAccount) router.replace('/username');
+    } catch (e) {
+      setError(
+        e instanceof ApiError
+          ? (e.fields?.[0]?.message ?? e.message)
+          : 'Could not reach the server. Check your connection.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const inputStyle = {
+    minHeight: TAP_TARGET,
+    borderWidth: 1,
+    borderColor: c.border,
+    backgroundColor: c.surface,
+    borderRadius: radius.md,
+    paddingHorizontal: space.lg,
+    color: c.text,
+    ...font.body,
+  };
+
+  return (
+    <Screen>
+      <View style={{ gap: space.xs, marginTop: space.xxl }}>
+        <Eyebrow>JAMB PRACTICE, HEAD TO HEAD</Eyebrow>
+        <Title>SabiPass</Title>
+        <Body muted>
+          Ten questions, fifteen seconds each. Challenge a friend or play solo.
+        </Body>
+      </View>
+
+      <View style={{ gap: space.md, marginTop: space.xl }}>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          placeholderTextColor={c.textMuted}
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          inputMode="email"
+          style={inputStyle}
+        />
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          placeholder={mode === 'signup' ? 'Password (10+ characters)' : 'Password'}
+          placeholderTextColor={c.textMuted}
+          autoCapitalize="none"
+          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+          secureTextEntry
+          style={inputStyle}
+        />
+
+        {error ? <ErrorNote message={error} /> : null}
+
+        <Button
+          label={mode === 'signup' ? 'Create account' : 'Sign in'}
+          onPress={submit}
+          busy={busy}
+          disabled={!email.trim() || password.length < 1}
+        />
+
+        <Pressable
+          onPress={() => {
+            setMode(mode === 'signup' ? 'login' : 'signup');
+            setError(null);
+          }}
+          style={{ minHeight: 44, justifyContent: 'center', alignItems: 'center' }}
+          accessibilityRole="button"
+        >
+          <Text style={{ ...font.body, fontSize: 14, color: c.accent }}>
+            {mode === 'signup'
+              ? 'Already have an account? Sign in'
+              : 'New here? Create an account'}
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={{ flex: 1 }} />
+
+      {/*
+        Google and Apple buttons land in Phase 4 alongside the OAuth client
+        registration. Showing dead buttons now would be worse than showing none.
+        Apple Sign-In is required on iOS once Google ships (App Store 4.8).
+      */}
+      <View style={{ gap: space.sm, opacity: 0.5 }}>
+        <Body muted>
+          {Platform.OS === 'ios'
+            ? 'Google and Apple sign-in arrive in the next build.'
+            : 'Google sign-in arrives in the next build.'}
+        </Body>
+      </View>
+    </Screen>
+  );
+}

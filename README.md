@@ -27,21 +27,45 @@ cannot be validated on a simulator.
 ## Layout
 
 ```
-src/app/          expo-router routes
-src/lib/          anticheat, api client, auth
-src/theme.ts      design tokens — one ochre accent, green/red reserved for answers
+src/app/            expo-router routes
+  index.tsx         boot gate → sign-in or home
+  sign-in.tsx       email/password
+  username.tsx      shown once, after a new account
+  home.tsx          record, streak, entry points, pending matches
+  subjects.tsx      subject picker
+  lobby/[matchId]   house rules + 3-2-1 countdown
+  play/[matchId]    the question screen — this is the product
+  result/[matchId]  score, per-question review vs opponent
+  spike.tsx         Phase 1 anti-cheat harness (dev only)
+src/components/     TimerBar, OptionButton, shared ui
+src/lib/            api client, session, anticheat, server clock
+src/store/auth.ts   zustand — auth only
+src/theme.ts        tokens — one ochre accent, green/red reserved for answers
 ```
+
+## Talking to the backend
+
+A physical device cannot reach `localhost` — that is the phone's own loopback.
+Set your machine's LAN address:
+
+```bash
+# .env
+EXPO_PUBLIC_API_URL=http://192.168.x.x:4000
+```
+
+Without it the client falls back to the Metro packager's host, which is usually
+the right machine during development.
 
 ## Phase 1 — anti-cheat spike
 
-`src/app/index.tsx` is currently the **spike screen**, not the app. It arms real
+`src/app/spike.tsx` is the **spike screen**, reachable at `/spike` via the DEV link at the bottom of Home. It arms real
 capture protection and walks you through the GO / NO-GO checks from
 [BUILD.md](BUILD.md) Phase 1. Run it on a physical Android device and iPhone, then
 tap **Share results**.
 
 Four critical checks decide the gate: Android screenshot, Android Gemini read,
-Android Circle to Search, iOS screenshot. This file is replaced by the real Home
-screen at the start of Phase 3.
+Android Circle to Search, iOS screenshot. Delete the route once Phase 1 is signed
+off — the DEV link only renders under `__DEV__`, so it never ships either way.
 
 ## Config notes
 
