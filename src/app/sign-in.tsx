@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Platform, Pressable, Text, TextInput, View } from 'react-native';
-import { Redirect, router } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ApiError, api } from '@/lib/api';
 import { useColors } from '@/lib/useColors';
 import { Body, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
@@ -11,6 +11,7 @@ export default function SignIn() {
   const c = useColors();
   const status = useAuth((s) => s.status);
   const setUser = useAuth((s) => s.setUser);
+  const { code } = useLocalSearchParams<{ code?: string }>();
 
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
   const [email, setEmail] = useState('');
@@ -18,7 +19,10 @@ export default function SignIn() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (status === 'signedIn') return <Redirect href="/home" />;
+  // A duel code arriving via deep link must survive sign-in, not be dropped.
+  const nextHref = code ? `/home?code=${code}` : '/home';
+
+  if (status === 'signedIn') return <Redirect href={nextHref} />;
 
   const submit = async () => {
     setBusy(true);
@@ -30,7 +34,7 @@ export default function SignIn() {
           : await api.login(email.trim(), password);
       setUser(r.user);
       // New accounts get a name derived from their email; let them fix it once.
-      if (r.isNewAccount) router.replace('/username');
+      router.replace(r.isNewAccount ? '/username' : nextHref);
     } catch (e) {
       setError(
         e instanceof ApiError

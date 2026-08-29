@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, Redirect, router } from 'expo-router';
+import { Link, Redirect, router, useLocalSearchParams } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import { JoinByCode } from '@/components/JoinByCode';
 import { api } from '@/lib/api';
 import { useColors } from '@/lib/useColors';
 import {
@@ -21,6 +22,8 @@ export default function Home() {
   const c = useColors();
   const status = useAuth((s) => s.status);
   const user = useAuth((s) => s.user);
+  // A sabipass://duel/CODE link lands here with the code pre-filled.
+  const { code } = useLocalSearchParams<{ code?: string }>();
 
   const me = useQuery({ queryKey: ['me'], queryFn: api.me, enabled: status === 'signedIn' });
   const matches = useQuery({
@@ -65,12 +68,13 @@ export default function Home() {
       ) : null}
 
       <View style={{ gap: space.md }}>
-        <Button label="Practice" onPress={() => router.push('/subjects?mode=solo')} />
+        <Button label="Quick duel" onPress={() => router.push('/subjects?mode=duel')} />
         <Button
-          label="Duel a friend"
+          label="Practice"
           variant="secondary"
-          onPress={() => router.push('/subjects?mode=duel')}
+          onPress={() => router.push('/subjects?mode=solo')}
         />
+        <JoinByCode initialCode={typeof code === 'string' ? code : ''} />
       </View>
 
       {pending.length > 0 ? (

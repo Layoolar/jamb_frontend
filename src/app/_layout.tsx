@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -30,6 +31,31 @@ export default function RootLayout() {
     setUnauthenticatedHandler(forceSignOut);
     restore();
   }, [restore, forceSignOut]);
+
+  /**
+   * Tapping a "you won / you lost" notification opens that match's result.
+   * Handles both a cold start from a notification and a tap while running.
+   */
+  useEffect(() => {
+    const open = (data: unknown) => {
+      const matchId = (data as { matchId?: string } | null)?.matchId;
+      if (typeof matchId === 'string' && matchId) {
+        router.push(`/result/${matchId}`);
+      }
+    };
+
+    Notifications.getLastNotificationResponseAsync()
+      .then((res) => {
+        if (res) open(res.notification.request.content.data);
+      })
+      .catch(() => {});
+
+    const sub = Notifications.addNotificationResponseReceivedListener((res) => {
+      open(res.notification.request.content.data);
+    });
+
+    return () => sub.remove();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: c.bg }}>

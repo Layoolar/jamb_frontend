@@ -93,7 +93,7 @@ Goal: a complete duel playable end-to-end with curl. No React Native this phase.
 - [x] `POST /matches/join` — `SELECT … FOR UPDATE SKIP LOCKED`
 - [x] `GET /matches/:id/result`
 - [x] Settlement in one transaction, `FOR UPDATE` on the match row — two simultaneous finishes cannot double-settle
-- [ ] Bot opponent fallback for unclaimed matches *(schema column exists; fill logic not written)*
+- [x] Bot opponent fallback for unclaimed matches — on-demand `POST /matches/:id/bot` plus an hourly sweep past 12h
 - [x] Hourly `node-cron` expiry job
 
 ### Content
@@ -134,17 +134,17 @@ Goal: practice mode feels good end to end. This screen is the product.
 
 ## Phase 4 — Duel loop (Days 19–25)
 
-- [ ] Create duel → waiting state
-- [ ] Invite code + deep link (`expo-linking`), tested from WhatsApp
-- [ ] Quick duel from the open-match pool
-- [ ] Join by code
-- [ ] Per-question opponent comparison on the result screen
-- [ ] Rematch button
-- [ ] Push notifications (`expo-notifications`) — opponent finished, you won/lost, duel expiring
-- [ ] Push permission asked *after* the first duel, not at launch
-- [ ] Bot opponent, **labelled "Bot"** in the UI
-- [ ] Pending matches list on Home
-- [ ] Share result — image or text, screenshots deliberately allowed here
+- [x] Create duel → waiting state
+- [x] Invite code + deep link — `sabipass://duel/CODE`, route `/duel/[code]`. *Deliberately does not auto-join: a tapped link should not commit someone to a timed match.* **Still needs a real WhatsApp round-trip on hardware.**
+- [x] Quick duel from the open-match pool
+- [x] Join by code
+- [x] Per-question opponent comparison on the result screen
+- [x] Rematch button
+- [x] Push notifications (`expo-notifications`) — opponent finished, you won/lost, duel expiring
+- [x] Push permission asked *after* the first duel, not at launch
+- [x] Bot opponent, **labelled "Bot"** in the UI
+- [x] Pending matches list on Home
+- [x] Share result — image or text, screenshots deliberately allowed here
 
 **Exit gate:** two real phones complete a duel start to finish, both get correct results and notifications. **Build a release candidate — Phase 6 starts now, in parallel.**
 

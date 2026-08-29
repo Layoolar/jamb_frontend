@@ -102,6 +102,9 @@ export type AnswerLine = {
 export type MatchResult = {
   matchId: string;
   status: MatchStatus;
+  mode: MatchMode;
+  /** Only present for the creator, and only while the duel is still open. */
+  inviteCode: string | null;
   subject: { slug: string; name: string } | null;
   isDraw: boolean;
   isBotOpponent: boolean;

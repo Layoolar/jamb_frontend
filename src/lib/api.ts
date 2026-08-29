@@ -248,6 +248,15 @@ export const api = {
       body: { questionId, selectedIndex, flags },
     }),
 
+  addBot: (matchId: string) =>
+    call<MatchSummary>(`/matches/${matchId}/bot`, { method: 'POST' }),
+
+  registerPushToken: (token: string, platform: 'ios' | 'android') =>
+    call<{ ok: true }>('/auth/push-token', {
+      method: 'POST',
+      body: { token, platform },
+    }),
+
   matchResult: (matchId: string) =>
     call<MatchResult>(`/matches/${matchId}/result`),
 };

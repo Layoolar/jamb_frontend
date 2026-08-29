@@ -1,7 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
+import { InviteCard } from '@/components/InviteCard';
 import { api } from '@/lib/api';
+import { hasBeenAsked, registerForPush } from '@/lib/notifications';
 import { useColors } from '@/lib/useColors';
 import {
   Body,
@@ -24,6 +27,8 @@ export default function Result() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const me = useAuth((s) => s.user);
 
+  const qc = useQueryClient();
+
   const result = useQuery({
     queryKey: ['result', matchId],
     queryFn: () => api.matchResult(matchId),
@@ -31,6 +36,27 @@ export default function Result() {
     refetchInterval: (q) =>
       q.state.data?.status === 'settled' ? false : 15_000,
   });
+
+  const bot = useMutation({
+    mutationFn: () => api.addBot(matchId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['result', matchId] });
+      qc.invalidateQueries({ queryKey: ['matches'] });
+      qc.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+
+  /**
+   * Ask for notification permission here — after a first duel is done, at the
+   * moment "tell me when they reply" is obviously useful. Never at launch: a
+   * cold prompt is the easiest way to earn a permanent no, and iOS gives one ask.
+   */
+  useEffect(() => {
+    if (result.data?.mode !== 'duel') return;
+    hasBeenAsked().then((asked) => {
+      if (!asked) void registerForPush();
+    });
+  }, [result.data?.mode]);
 
   if (result.isLoading) {
     return (
@@ -109,6 +135,20 @@ export default function Result() {
 
       {r.you.forfeited ? (
         <ErrorNote message="You forfeited this match by leaving the app during a question." />
+      ) : null}
+
+      {r.inviteCode ? (
+        <InviteCard
+          code={r.inviteCode}
+          scoreToBeat={r.you.score}
+          subject={r.subject?.name ?? 'mixed questions'}
+          botBusy={bot.isPending}
+          onPlayBot={() => bot.mutate()}
+        />
+      ) : null}
+
+      {bot.isError ? (
+        <ErrorNote message="Could not add a bot opponent. Try again in a moment." />
       ) : null}
 
       {r.questions.length > 0 ? (
