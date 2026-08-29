@@ -15,21 +15,34 @@ import { font, radius, space, TAP_TARGET } from '@/theme';
 export function Screen({
   children,
   scroll = true,
+  header,
   style,
 }: {
   children: ReactNode;
   scroll?: boolean;
+  /**
+   * Rendered OUTSIDE the ScrollView so it stays pinned. A way out that scrolls
+   * off the top is not a way out — you should never have to scroll to leave a
+   * screen.
+   */
+  header?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
   const c = useColors();
   const inner = (
-    <View style={[{ padding: space.xl, gap: space.lg, flexGrow: 1 }, style]}>
+    <View
+      style={[
+        { padding: space.xl, paddingTop: header ? space.md : space.xl, gap: space.lg, flexGrow: 1 },
+        style,
+      ]}
+    >
       {children}
     </View>
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }} edges={['top', 'bottom']}>
+      {header}
       {scroll ? (
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
@@ -41,6 +54,87 @@ export function Screen({
         inner
       )}
     </SafeAreaView>
+  );
+}
+
+/**
+ * Fixed top bar. `onBack` and `onHome` are separate on purpose: on a result
+ * screen "back" would return you into the match you just finished, so those
+ * screens want an explicit route home instead of browser-style history.
+ */
+export function Header({
+  title,
+  onBack,
+  onHome,
+  right,
+}: {
+  title?: string;
+  onBack?: () => void;
+  onHome?: () => void;
+  right?: ReactNode;
+}) {
+  const c = useColors();
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: space.sm,
+        paddingHorizontal: space.md,
+        paddingVertical: space.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: c.border,
+        backgroundColor: c.bg,
+      }}
+    >
+      {onBack ? (
+        <IconButton label="Back" glyph="‹" onPress={onBack} />
+      ) : onHome ? (
+        <IconButton label="Home" glyph="⌂" onPress={onHome} />
+      ) : (
+        <View style={{ width: 44 }} />
+      )}
+
+      <Text
+        numberOfLines={1}
+        style={{ ...font.heading, color: c.text, flex: 1 }}
+      >
+        {title ?? ''}
+      </Text>
+
+      {right ?? <View style={{ width: 44 }} />}
+    </View>
+  );
+}
+
+export function IconButton({
+  glyph,
+  label,
+  onPress,
+}: {
+  glyph: string;
+  label: string;
+  onPress: () => void;
+}) {
+  const c = useColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={8}
+      style={({ pressed }) => ({
+        width: 44,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: radius.sm,
+        opacity: pressed ? 0.6 : 1,
+      })}
+    >
+      <Text style={{ fontSize: 24, lineHeight: 28, color: c.text }}>{glyph}</Text>
+    </Pressable>
   );
 }
 

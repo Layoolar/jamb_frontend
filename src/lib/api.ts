@@ -193,6 +193,16 @@ export const api = {
     return r;
   },
 
+  /**
+   * Returns a FRESH token pair — the server revokes every session on change,
+   * including this one. Store the result or the next request 401s.
+   */
+  changePassword: (currentPassword: string | undefined, newPassword: string) =>
+    call<{ accessToken: string; refreshToken: string; expiresIn: number }>(
+      '/auth/password/change',
+      { method: 'POST', body: { currentPassword, newPassword } },
+    ),
+
   forgotPassword: (email: string) =>
     call<{ ok: true }>('/auth/password/forgot', {
       method: 'POST',

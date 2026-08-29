@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import { TextInput, View } from 'react-native';
 import { ApiError, api } from '@/lib/api';
 import { useColors } from '@/lib/useColors';
-import { Body, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
+import { Body, Button, ErrorNote, Eyebrow, Header, Screen, Title } from '@/components/ui';
 import { font, radius, space, TAP_TARGET } from '@/theme';
 
 export default function ForgotPassword() {
@@ -70,7 +70,7 @@ export default function ForgotPassword() {
 
   if (done) {
     return (
-      <Screen>
+      <Screen header={<Header title="Reset password" />}>
         <View style={{ gap: space.xs, marginTop: space.xxl }}>
           <Eyebrow>DONE</Eyebrow>
           <Title>Password changed</Title>
@@ -86,7 +86,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <Screen>
+    <Screen header={<Header title="Reset password" onBack={() => router.back()} />}>
       <View style={{ gap: space.xs, marginTop: space.xxl }}>
         <Eyebrow>ACCOUNT</Eyebrow>
         <Title>Reset password</Title>
@@ -158,7 +158,6 @@ export default function ForgotPassword() {
       )}
 
       <View style={{ flex: 1 }} />
-      <Button label="Back to sign in" variant="ghost" onPress={() => router.back()} />
     </Screen>
   );
 }

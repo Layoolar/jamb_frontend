@@ -10,6 +10,8 @@ import {
   Card,
   ErrorNote,
   Eyebrow,
+  Header,
+  IconButton,
   Loading,
   Screen,
   StatPill,
@@ -48,7 +50,14 @@ export default function Home() {
   const recent = (matches.data?.matches ?? []).filter((m) => m.status === 'settled');
 
   return (
-    <Screen>
+    <Screen
+      header={
+        <Header
+          title="SabiPass"
+          right={<IconButton glyph="☰" label="Profile" onPress={() => router.push('/profile')} />}
+        />
+      }
+    >
       <View style={{ gap: space.xs }}>
         <Eyebrow>WELCOME BACK</Eyebrow>
         <Title>{user?.username ?? 'Player'}</Title>
@@ -149,11 +158,6 @@ export default function Home() {
         </Link>
       ) : null}
 
-      <Button
-        label="Sign out"
-        variant="ghost"
-        onPress={() => useAuth.getState().signOut()}
-      />
     </Screen>
   );
 }

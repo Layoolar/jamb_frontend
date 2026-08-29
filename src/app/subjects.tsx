@@ -9,6 +9,7 @@ import {
   Button,
   ErrorNote,
   Eyebrow,
+  Header,
   Loading,
   Screen,
   Title,
@@ -49,7 +50,7 @@ export default function Subjects() {
 
   if (subjects.isLoading) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} header={<Header title="Pick a subject" onBack={() => router.back()} />}>
         <Loading label="Loading subjects" />
       </Screen>
     );
@@ -63,7 +64,7 @@ export default function Subjects() {
   const playable = rows.filter((s) => countFor(s) >= QUESTIONS_NEEDED);
 
   return (
-    <Screen>
+    <Screen header={<Header title={mode === 'duel' ? 'New duel' : 'Practice'} onBack={() => router.back()} />}>
       <View style={{ gap: space.xs }}>
         <Eyebrow>{mode === 'duel' ? 'DUEL' : 'PRACTICE'}</Eyebrow>
         <Title>Pick a subject</Title>
@@ -108,7 +109,6 @@ export default function Subjects() {
         onPress={start}
         busy={busy}
       />
-      <Button label="Back" variant="ghost" onPress={() => router.back()} />
     </Screen>
   );
 

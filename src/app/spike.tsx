@@ -22,6 +22,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { Header } from '@/components/ui';
 import * as Device from 'expo-device';
 import {
   armCaptureProtection,
@@ -169,6 +171,7 @@ export default function AntiCheatSpike() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+      <Header title="Anti-cheat spike" onHome={() => router.replace('/home')} />
       <ScrollView contentContainerStyle={s.scroll}>
         <Text style={s.eyebrow}>PHASE 1 · GO / NO-GO</Text>
         <Text style={s.h1}>Anti-cheat spike</Text>

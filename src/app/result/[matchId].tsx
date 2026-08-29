@@ -12,6 +12,7 @@ import {
   Card,
   ErrorNote,
   Eyebrow,
+  Header,
   Loading,
   Screen,
   Title,
@@ -60,7 +61,7 @@ export default function Result() {
 
   if (result.isLoading) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} header={<Header title="Result" onHome={() => router.replace('/home')} />}>
         <Loading label="Working out the result" />
       </Screen>
     );
@@ -68,7 +69,7 @@ export default function Result() {
 
   if (result.isError || !result.data) {
     return (
-      <Screen>
+      <Screen header={<Header title="Result" onHome={() => router.replace('/home')} />}>
         <ErrorNote message="Could not load this result. Check your connection." />
         <Button label="Home" onPress={() => router.replace('/home')} />
       </Screen>
@@ -92,7 +93,7 @@ export default function Result() {
   const correctCount = r.questions.filter((q) => q.yours?.isCorrect).length;
 
   return (
-    <Screen>
+    <Screen header={<Header title="Result" onHome={() => router.replace('/home')} />}>
       <View style={{ gap: space.xs }}>
         <Eyebrow>{(r.subject?.name ?? 'MIXED').toUpperCase()}</Eyebrow>
         <Title>{headline}</Title>

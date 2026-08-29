@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
-import { Body, Button, Card, Eyebrow, Screen, Title } from '@/components/ui';
+import { Body, Button, Card, Eyebrow, Header, Screen, Title } from '@/components/ui';
 import { useColors } from '@/lib/useColors';
 import { font, QUESTION_SECONDS, space } from '@/theme';
 
@@ -55,7 +55,7 @@ export default function Lobby() {
   }
 
   return (
-    <Screen>
+    <Screen header={<Header title="House rules" onHome={() => router.replace('/home')} />}>
       <View style={{ gap: space.xs, marginTop: space.lg }}>
         <Eyebrow>BEFORE YOU START</Eyebrow>
         <Title>House rules</Title>
@@ -79,7 +79,6 @@ export default function Lobby() {
       <View style={{ flex: 1 }} />
 
       <Button label="I'm ready" onPress={() => setCountdown(3)} />
-      <Button label="Not now" variant="ghost" onPress={() => router.replace('/home')} />
     </Screen>
   );
 }
