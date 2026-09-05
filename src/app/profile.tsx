@@ -23,6 +23,7 @@ import {
   Title,
 } from '@/components/ui';
 import { ApiError, api } from '@/lib/api';
+import { LEGAL, openLegal } from '@/lib/legal';
 import { updateTokens } from '@/lib/session';
 import { useColors } from '@/lib/useColors';
 import { useAuth } from '@/store/auth';
@@ -260,6 +261,18 @@ export default function Profile() {
             .join(', ') || '—'
         }
       />
+
+      {/* -------------------------------------------------------- policies */}
+      <View style={{ gap: space.sm }}>
+        <Eyebrow>LEGAL</Eyebrow>
+        <Row label="Privacy policy" value="View" onPress={() => openLegal(LEGAL.privacy)} />
+        <Row label="Terms of use" value="View" onPress={() => openLegal(LEGAL.terms)} />
+        <Row
+          label="Study challenge rules"
+          value="View"
+          onPress={() => openLegal(LEGAL.rules)}
+        />
+      </View>
 
       <View style={{ flex: 1, minHeight: space.xl }} />
 

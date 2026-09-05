@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { Redirect, router, useLocalSearchParams, type Href } from 'expo-router';
 import { ApiError, api } from '@/lib/api';
+import { LEGAL, openLegal } from '@/lib/legal';
 import { useColors } from '@/lib/useColors';
 import { Body, BrandMark, Button, ErrorNote, Eyebrow, Screen, Title } from '@/components/ui';
 import { useAuth } from '@/store/auth';
@@ -144,6 +145,40 @@ export default function SignIn() {
             : 'Google sign-in arrives in the next build.'}
         </Body>
       </View>
+
+      {/*
+        Full opacity and full contrast on purpose. This is the consent line, so
+        it is not decoration to be dimmed alongside the placeholder above.
+      */}
+      <Text
+        style={{
+          ...font.body,
+          fontSize: 13,
+          lineHeight: 19,
+          color: c.textMuted,
+          textAlign: 'center',
+          marginTop: space.md,
+        }}
+      >
+        {mode === 'signup' ? 'By creating an account' : 'By signing in'} you agree to
+        our{' '}
+        <Text
+          accessibilityRole="link"
+          onPress={() => openLegal(LEGAL.terms)}
+          style={{ color: c.accent }}
+        >
+          Terms of use
+        </Text>
+        {' and '}
+        <Text
+          accessibilityRole="link"
+          onPress={() => openLegal(LEGAL.privacy)}
+          style={{ color: c.accent }}
+        >
+          Privacy policy
+        </Text>
+        .
+      </Text>
     </Screen>
   );
 }
