@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
 import { InviteCard } from '@/components/InviteCard';
+import { ReportPlayer } from '@/components/ReportPlayer';
 import { api } from '@/lib/api';
 import { hasBeenAsked, registerForPush } from '@/lib/notifications';
 import { useColors } from '@/lib/useColors';
@@ -99,15 +100,15 @@ export default function Result() {
         {!solo && !r.revealed ? (
           <Body muted>
             {r.opponent
-              ? `Your opponent has answered ${r.opponent.answeredCount} of ${r.totalQuestions}. `
-              : 'Send the code below and your opponent answers the same ten. '}
+              ? `Your study partner has answered ${r.opponent.answeredCount} of ${r.totalQuestions}. `
+              : 'Send the code below and your study partner answers the same ten. '}
             Neither of you sees a score until you have both played — that way
             nobody picks their moment. We&apos;ll notify you the second it lands.
           </Body>
         ) : null}
 
         {r.isBotOpponent && r.revealed ? (
-          <Body muted>Nobody claimed your duel, so the bot played it.</Body>
+          <Body muted>Nobody claimed your challenge, so the bot played it.</Body>
         ) : null}
       </View>
 
@@ -195,7 +196,7 @@ export default function Result() {
       ) : null}
 
       {bot.isError ? (
-        <ErrorNote message="Could not add a bot opponent. Try again in a moment." />
+        <ErrorNote message="Could not add a bot. Try again in a moment." />
       ) : null}
 
       {r.questions.length > 0 ? (
@@ -241,9 +242,22 @@ export default function Result() {
         <Body muted>
           {solo
             ? 'The full review unlocks once you have answered every question.'
-            : 'The full review — both sets of answers, with explanations — unlocks when the duel is decided.'}
+            : 'The full review — both sets of answers, with explanations — unlocks when the challenge is decided.'}
         </Body>
       )}
+
+      {/*
+        Only for a real person. Reporting a bot files a complaint about
+        ourselves, and blocking one would quietly empty the pool for anyone
+        with nobody to play.
+      */}
+      {r.opponent && !r.opponent.user.isBot ? (
+        <ReportPlayer
+          userId={r.opponent.user.id}
+          username={r.opponent.user.username}
+          matchId={r.matchId}
+        />
+      ) : null}
 
       <View style={{ gap: space.md, marginTop: space.lg }}>
         <Button

@@ -64,9 +64,9 @@ export default function Subjects() {
   const playable = rows.filter((s) => countFor(s) >= QUESTIONS_NEEDED);
 
   return (
-    <Screen header={<Header title={mode === 'duel' ? 'New duel' : 'Practice'} onBack={() => router.back()} />}>
+    <Screen header={<Header title={mode === 'duel' ? 'New challenge' : 'Practice'} onBack={() => router.back()} />}>
       <View style={{ gap: space.xs }}>
-        <Eyebrow>{mode === 'duel' ? 'DUEL' : 'PRACTICE'}</Eyebrow>
+        <Eyebrow>{mode === 'duel' ? 'CHALLENGE' : 'PRACTICE'}</Eyebrow>
         <Title>Pick a subject</Title>
         <Body muted>Ten questions, fifteen seconds each.</Body>
       </View>
@@ -95,7 +95,7 @@ export default function Subjects() {
 
       {rows.length > playable.length ? (
         <Text style={{ ...font.label, color: c.textMuted }}>
-          SUBJECTS WITH FEWER THAN {QUESTIONS_NEEDED} {mode === 'duel' ? 'DUEL' : 'PRACTICE'}{' '}
+          SUBJECTS WITH FEWER THAN {QUESTIONS_NEEDED} {mode === 'duel' ? 'CHALLENGE' : 'PRACTICE'}{' '}
           QUESTIONS ARE HIDDEN
         </Text>
       ) : null}
@@ -105,7 +105,7 @@ export default function Subjects() {
       <View style={{ flex: 1 }} />
 
       <Button
-        label={mode === 'duel' ? 'Find an opponent' : 'Start practice'}
+        label={mode === 'duel' ? 'Find a study partner' : 'Start practice'}
         onPress={start}
         busy={busy}
       />

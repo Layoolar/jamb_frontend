@@ -13,6 +13,13 @@ export type PublicUser = {
   isBot: boolean;
 };
 
+/** Mirrors the `user_report_reason` enum. */
+export type ReportReason =
+  | 'offensive_username'
+  | 'harassment'
+  | 'cheating'
+  | 'other';
+
 export type Stats = {
   wins: number;
   losses: number;

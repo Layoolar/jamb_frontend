@@ -14,6 +14,7 @@ import type {
   MatchSummary,
   Me,
   PublicUser,
+  ReportReason,
   ServedQuestion,
   Subject,
 } from './types';
@@ -247,6 +248,20 @@ export const api = {
       method: 'POST',
       body: { reason },
     }),
+
+  // --------------------------------------------------------------- moderation
+
+  blockedUsers: () => call<{ blocked: PublicUser[] }>('/users/blocked'),
+
+  blockUser: (userId: string) =>
+    call<{ ok: true }>(`/users/${userId}/block`, { method: 'POST' }),
+
+  unblockUser: (userId: string) =>
+    call<{ ok: true }>(`/users/${userId}/block`, { method: 'DELETE' }),
+
+  /** Reporting also blocks server-side — the two are one action to the user. */
+  reportUser: (userId: string, input: { reason: ReportReason; matchId?: string }) =>
+    call<{ ok: true }>(`/users/${userId}/report`, { method: 'POST', body: input }),
 
   // ------------------------------------------------------------------ matches
 

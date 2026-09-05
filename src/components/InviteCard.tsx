@@ -55,7 +55,7 @@ export function InviteCard({
         gap: space.md,
       }}
     >
-      <Text style={{ ...font.label, color: c.accent }}>SHARE THIS DUEL</Text>
+      <Text style={{ ...font.label, color: c.accent }}>SHARE THIS CHALLENGE</Text>
       <Body muted>
         Send the code to a friend. They answer the same ten questions, then you
         both find out together.

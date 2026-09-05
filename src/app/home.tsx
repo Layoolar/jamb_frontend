@@ -111,7 +111,7 @@ export default function Home() {
 
       {isNew ? (
         <Card>
-          <Text style={{ ...font.heading, color: c.text }}>How a duel works</Text>
+          <Text style={{ ...font.heading, color: c.text }}>How a challenge works</Text>
           <HowRow n="1" text="Ten questions. Fifteen seconds each." c={c} />
           <HowRow n="2" text="Send the code to a friend — same questions, their turn." c={c} />
           <HowRow n="3" text="Neither of you sees a score until you have both played." c={c} />
@@ -156,7 +156,7 @@ export default function Home() {
                   Resume {m.subject?.name ?? 'Mixed'}
                 </Text>
                 <Text style={{ ...font.label, color: c.textMuted }}>
-                  {m.mode === 'solo' ? 'PRACTICE' : 'DUEL'} ·{' '}
+                  {m.mode === 'solo' ? 'PRACTICE' : 'CHALLENGE'} ·{' '}
                   {m.answeredCount}/{m.totalQuestions} ANSWERED
                 </Text>
               </View>
@@ -167,7 +167,7 @@ export default function Home() {
       ) : null}
 
       <View style={{ gap: space.md }}>
-        <Button label="Quick duel" onPress={() => router.push('/subjects?mode=duel')} />
+        <Button label="Quick challenge" onPress={() => router.push('/subjects?mode=duel')} />
         <Button
           label="Practice"
           variant="secondary"

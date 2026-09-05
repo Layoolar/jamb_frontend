@@ -35,6 +35,7 @@ export default function Profile() {
   const setUser = useAuth((s) => s.setUser);
 
   const me = useQuery({ queryKey: ['me'], queryFn: api.me });
+  const blocked = useQuery({ queryKey: ['blocked'], queryFn: api.blockedUsers });
 
   const [section, setSection] = useState<'none' | 'username' | 'password'>('none');
   const [username, setUsername] = useState('');
@@ -60,6 +61,16 @@ export default function Profile() {
         ? (e.fields?.[0]?.message ?? e.message)
         : 'Could not reach the server. Check your connection.',
     );
+
+  const unblock = useMutation({
+    mutationFn: (userId: string) => api.unblockUser(userId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['blocked'] });
+      setError(null);
+      setNotice('Unblocked. They can be matched with you again.');
+    },
+    onError: fail,
+  });
 
   const saveUsername = useMutation({
     mutationFn: () => api.setUsername(username.trim()),
@@ -142,7 +153,7 @@ export default function Profile() {
           <StatPill label="BEST" value={String(stats?.bestStreak ?? 0)} />
         </View>
         <Text style={{ ...font.label, color: c.textMuted, textAlign: 'center' }}>
-          {stats?.duelsPlayed ?? 0} DUELS PLAYED · STREAK {stats?.streak ?? 0}
+          {stats?.duelsPlayed ?? 0} CHALLENGES PLAYED · STREAK {stats?.streak ?? 0}
         </Text>
       </Card>
 
@@ -261,6 +272,30 @@ export default function Profile() {
             .join(', ') || '—'
         }
       />
+
+      {/* --------------------------------------------------------- blocked */}
+      {/*
+        A block you cannot undo is a trap, so the list is only rendered when it
+        has something in it — an empty "Blocked players" header on every profile
+        implies a problem most users will never have.
+      */}
+      {(blocked.data?.blocked.length ?? 0) > 0 ? (
+        <View style={{ gap: space.sm }}>
+          <Eyebrow>BLOCKED PLAYERS</Eyebrow>
+          {blocked.data?.blocked.map((b) => (
+            <Row
+              key={b.id}
+              label={b.username}
+              value={unblock.isPending ? '…' : 'Unblock'}
+              onPress={() => unblock.mutate(b.id)}
+            />
+          ))}
+          <Body muted>
+            Blocked players are never matched with you, by quick challenge or by
+            code.
+          </Body>
+        </View>
+      ) : null}
 
       {/* -------------------------------------------------------- policies */}
       <View style={{ gap: space.sm }}>

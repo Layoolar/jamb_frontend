@@ -454,8 +454,8 @@ export default function Play() {
               </Text>
               <Body muted>
                 {answer.isFinalQuestion
-                  ? 'That was the last one. You will see how you did when your opponent finishes.'
-                  : 'Results are revealed when the duel is decided.'}
+                  ? 'That was the last one. You will see how you did when your study partner finishes.'
+                  : 'Results are revealed when the challenge is decided.'}
               </Body>
               <Pressable
                 onPress={report}

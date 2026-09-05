@@ -41,7 +41,7 @@ export function JoinByCode({ initialCode = '' }: { initialCode?: string }) {
         <TextInput
           value={code}
           onChangeText={setCode}
-          placeholder="DUEL CODE"
+          placeholder="CHALLENGE CODE"
           placeholderTextColor={c.textMuted}
           autoCapitalize="characters"
           autoCorrect={false}

@@ -50,7 +50,7 @@ export default function Username() {
       <View style={{ gap: space.xs, marginTop: space.xxl }}>
         <Eyebrow>ONE LAST THING</Eyebrow>
         <Title>Pick a name</Title>
-        <Body muted>This is what your opponents will see. You can change it later.</Body>
+        <Body muted>This is what your study partners will see. You can change it later.</Body>
       </View>
 
       <TextInput
